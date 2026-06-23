@@ -1,536 +1,1022 @@
-CORPORATCROWDS = {}
+CORPORAT = {}
 
 local config = require("Modules/config")
 local config = require("Modules/functions")
+local Visuals = require("Modules/functions")
 
 local nativeSettings = GetMod("nativeSettings")
 
-local BoolList = {[1] = "Off", [2] = "On"}
+local LUTlist = {[1] = "0.000000000001", [2] = "0.00000000001", [3] = "0.0000000001", [4] = "0.000000001", [5] = "0.00000001", [6] = "0.0000001", [7] = "0.000001", [8] = "0.00001", [9] = "0.0001", [10] = "0.001" }
 
-nativeSettings.addTab("/CORPORATCROWDS", "CorpoRat Crowd Tweaker")
-nativeSettings.addSubcategory("/CORPORATCROWDS/Crowd", "Crowd")
-nativeSettings.addSubcategory("/CORPORATCROWDS/CrowdMovement", "Crowd Movement")
-nativeSettings.addSubcategory("/CORPORATCROWDS/Crowds", "Crowds")
-nativeSettings.addSubcategory("/CORPORATCROWDS/ChaseTarget", "AI/Vehicle/ChaseTarget")
-nativeSettings.addSubcategory("/CORPORATCROWDS/Navigation", "Editor/Navigation")
-nativeSettings.addSubcategory("/CORPORATCROWDS/Traffic", "Traffic")
-nativeSettings.addSubcategory("/CORPORATCROWDS/VehicleAI", "Vehicle AI")
-nativeSettings.addSubcategory("/CORPORATCROWDS/Vehicle", "Vehicle")
-nativeSettings.addSubcategory("/CORPORATCROWDS/ObjectSelection", "Object Selection")
-nativeSettings.addSubcategory("/CORPORATCROWDS/ChoiceLookAt", "Failsafe/ChoiceLookAt")
-nativeSettings.addSubcategory("/CORPORATCROWDS/MovementPolicies", "Movement Policies")
-nativeSettings.addSubcategory("/CORPORATCROWDS/Marble", "Marble")
-nativeSettings.addSubcategory("/CORPORATCROWDS/AI", "AI")
-nativeSettings.addSubcategory("/CORPORATCROWDS/GameSenses", "Game Senses")
-nativeSettings.addSubcategory("/CORPORATCROWDS/Occlusion", "Occlusion")
-nativeSettings.addSubcategory("/CORPORATCROWDS/ReactionSystem", "Reaction System")
+local  Denoiser_list = {[1] = "Ray Reconstruction (clean)", [2] = "Ray Reconstruction (sharp)", [3] = "NRD/DLSS", [4] = "Vanilla"}
+
+local bias_list = {[1] = "None", [2] = "Basic", [3] = "Full" }
+
+local permutaion_list = {[1] = "Random", [2] = "Deterministic", [3] = "Advanced" }
+
+nativeSettings.addTab("/CORPORAT", "CorpoRat: Graphics Settings")
+
+nativeSettings.addSubcategory("/CORPORAT/Denoiser", "Denoiser")
+
+nativeSettings.addSubcategory("/CORPORAT/PersistencyCache", "World/Streaming/PersistencyCache")
+
+nativeSettings.addSubcategory("/CORPORAT/ResourceLoaderThrottler", "Resource Loader Throttler")
+
+nativeSettings.addSubcategory("/CORPORAT/Streaming", "Streaming")
+nativeSettings.addSubcategory("/CORPORAT/StreamingCulling", "Streaming/Culling")
+
+nativeSettings.addSubcategory("/CORPORAT/DLSS", "DLSS")
+
+nativeSettings.addSubcategory("/CORPORAT/FeatureToggles", "Developer/FeatureToggles")
+
+nativeSettings.addSubcategory("/CORPORAT/Rendering", "Rendering")
+nativeSettings.addSubcategory("/CORPORAT/Shadows", "Rendering/Shadows")
+nativeSettings.addSubcategory("/CORPORAT/LUT", "Rendering/LUT")
+nativeSettings.addSubcategory("/CORPORAT/VRS", "Rendering/VariableRateShading")
+
+nativeSettings.addSubcategory("/CORPORAT/RayTracing", "RayTracing")
+nativeSettings.addSubcategory("/CORPORAT/BlasCache", "RayTracing/BlasCache")
+nativeSettings.addSubcategory("/CORPORAT/Reflection", "RayTracing/Reflection")
+nativeSettings.addSubcategory("/CORPORAT/Diffuse", "RayTracing/Diffuse")
+nativeSettings.addSubcategory("/CORPORAT/LocalLight", "RayTracing/LocalLight")
+nativeSettings.addSubcategory("/CORPORAT/Reference", "RayTracing/Reference")
+
+nativeSettings.addSubcategory("/CORPORAT/PathTracing", "Editor/PathTracing")
+nativeSettings.addSubcategory("/CORPORAT/RTXDI", "Editor/RTXDI")
+nativeSettings.addSubcategory("/CORPORAT/ReSTIRGI", "Editor/ReSTIRGI")
+nativeSettings.addSubcategory("/CORPORAT/ReGIR", "Editor/ReGIR")
+nativeSettings.addSubcategory("/CORPORAT/SHARC", "Editor/SHARC - Spatially Hashed Radiance Cache (SHaRC)")
+nativeSettings.addSubcategory("/CORPORAT/NRD", "Editor/Denoising/NRD")
+nativeSettings.addSubcategory("/CORPORAT/ReBLUR", "Editor/Denoising/ReBLUR/Direct")
+nativeSettings.addSubcategory("/CORPORAT/Audio", "Editor/Audio/Features")
+nativeSettings.addSubcategory("/CORPORAT/FoliageParameters", "Editor/FoliageParameters")
+
+nativeSettings.addSubcategory("/CORPORAT/Skin1", "Editor/Characters/Skin")
+
+nativeSettings.addSubcategory("/CORPORAT/Eyes", "Editor/Characters/Eyes")
+
+nativeSettings.addSubcategory("/CORPORAT/Hair", "Editor/Characters/Hair")
+nativeSettings.addSubcategory("/CORPORAT/HairSpecular", "Editor/Characters/Hair/Specular")
+nativeSettings.addSubcategory("/CORPORAT/HairMultiScatter", "Editor/Characters/Hair/MultiScatter")
+nativeSettings.addSubcategory("/CORPORAT/HairEnvProbe", "Editor/Characters/Hair/EnvProbe")
+nativeSettings.addSubcategory("/CORPORAT/HairLocalLight", "Editor/Characters/Hair/LocalLight")
+nativeSettings.addSubcategory("/CORPORAT/HairGlobalLight", "Editor/Characters/Hair/GlobalLight")
+nativeSettings.addSubcategory("/CORPORAT/HairAlphaShifts", "Editor/Characters/Hair/AlphaShifts")
+nativeSettings.addSubcategory("/CORPORAT/HairHacks", "Editor/Characters/Hair/HACKS")
+nativeSettings.addSubcategory("/CORPORAT/TRT_Params", "Editor/Characters/Hair/TRT_Params")
 
 
-function CORPORATCROWDS:new()
+function CORPORAT:new()
 
---[Marble]
-     nativeSettings.addRangeInt("/CORPORATCROWDS/Marble", "Avoidance Marbles Anticipation", "NPCs look ahead further / consider more nearby agents when planning avoidance. Movements look smoother, more natural, with fewer bumping incidents — but costs more CPU. (Default: 5)", 1, 10, 1, curSettings.iAvoidanceMarblesAnticipation, defaultSettings.iAvoidanceMarblesAnticipation, function(state)
-		curSettings.iAvoidanceMarblesAnticipation = state
-		GameOptions.SetInt('Marble', 'AvoidanceMarblesAnticipation', state)
-     end)
-
-     nativeSettings.addRangeInt("/CORPORATCROWDS/Marble", "Light Spreading Marble Anticipation", "Crowd agents try to “anticipate” movement in groups (e.g., groups of pedestrians walk together, avoid collisions collectively, and don’t scatter unnaturally). (Default: 5)", 1, 10, 1, curSettings.iLightSpreadingMarbleAnticipation, defaultSettings.iLightSpreadingMarbleAnticipation, function(state)
-		curSettings.iLightSpreadingMarbleAnticipation = state
-		GameOptions.SetInt('Marble', 'LightSpreadingMarbleAnticipation', state)
-     end)
-
-    nativeSettings.addSwitch("/CORPORATCROWDS/Marble", "Enable Anticipation Grouping", "Crowd agents try to 'anticipate' movement in groups (e.g., groups of pedestrians walk together, avoid collisions collectively, and don’t scatter unnaturally). (Default: 'On')", curSettings.bEnableAnticipationGrouping, defaultSettings.bEnableAnticipationGrouping, function(state)
-		curSettings.bEnableAnticipationGrouping = state
-		GameOptions.SetBool('Marble', 'EnableAnticipationGrouping', state)
-	 end)
-    nativeSettings.addSwitch("/CORPORATCROWDS/Marble", "Enable Player Slot", "NPCs reserve a personal avoidance bubble around the player, keeping a consistent space when walking nearby. This makes crowds part around V more naturally. (Default: 'Off')*", curSettings.bEnablePlayerSlot, defaultSettings.bEnablePlayerSlot, function(state)
-		curSettings.bEnablePlayerSlot = state
-		GameOptions.SetBool('Marble', 'EnablePlayerSlot', state)
-	 end)
-    nativeSettings.addSwitch("/CORPORATCROWDS/Marble", "Zebra Spread", "NPCs spread out laterally, fanning across the crosswalk instead of funneling in a straight line. Looks more natural and realistic in city environments. (Default: 'Off')*", curSettings.bEnableZebraSpread, defaultSettings.bEnableZebraSpread, function(state)
-		curSettings.bEnableZebraSpread = state
-		GameOptions.SetBool('Marble', 'EnableZebraSpread', state)
-	 end)
-    nativeSettings.addSwitch("/CORPORATCROWDS/Marble", "Local Path Projection", "Each agent projects a short “lookahead” path segment to anticipate local obstacles and flow around them smoothly (like a short-range dynamic path). Movements look more fluid and predictive. (Default: 'Off')*", curSettings.bLocalPathProjection, defaultSettings.bLocalPathProjection, function(state)
-		curSettings.bLocalPathProjection = state
-		GameOptions.SetBool('Marble', 'LocalPathProjection', state)
-	 end)
-
-
---[AI/Vehicle/ChaseTarget]
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/ChaseTarget", "Avoidance Multiplier", "Determines how strongly AI drivers try to avoid collisions with other vehicles, pedestrians, or obstacles during a chase. (Default: 3)", 1, 10, 0.1, "%.1f", curSettings.fAvoidanceMultiplier, defaultSettings.fAvoidanceMultiplier, function(state)
-        curSettings.fAvoidanceMultiplier = state
-		GameOptions.SetFloat('AI/Vehicle/ChaseTarget', 'AvoidanceMultiplier', state)
+    nativeSettings.addSelectorString("/CORPORAT/Denoiser", "Denoiser Preset", "Ray Reconstruction, NRD, Vanilla", Denoiser_list, curSettings.denoiser, defaultSettings.denoiser, function(value)
+        curSettings.denoiser = tonumber(value)
+--		print("SetDenoiser Updated to ", Denoiser_list[value])
+--		print("SetDenoiser Updated to ", value)
+        SaveFile("Data/config.json", curSettings)
+		Visuals.SetDenoiser()
+--		print("Visuals.SetDenoiser Ran")
     end)
 
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/ChaseTarget", "Default Multiplier", "Fallback multiplier used when the AI encounters a surface or navigation type that isn’t explicitly handled by another setting. (Default: 3)", 1, 10, 0.1, "%.1f", curSettings.fDefaultMultiplier, defaultSettings.fDefaultMultiplier, function(state)
-        curSettings.fDefaultMultiplier = state
-		GameOptions.SetFloat('AI/Vehicle/ChaseTarget', 'DefaultMultiplier', state)
+--[World/Streaming/PersistencyCache]
+    nativeSettings.addRangeInt("/CORPORAT/PersistencyCache", "Max Entries Per Page", "Max Entries Per Page (Default: 8)", 8, 64, 8, curSettings.iMaxEntriesPerPage, defaultSettings.iMaxEntriesPerPage, function(state)
+        curSettings.iMaxEntriesPerPage = state
+		GameOptions.SetInt('World/Streaming/PersistencyCache', 'MaxEntriesPerPage', state)
     end)
 
-    nativeSettings.addSwitch("/CORPORATCROWDS/ChaseTarget", "Keep Distance Enabled", "When 'On' chaser vehicles won’t ram constantly; they’ll slow down/hold position once they’re 'close enough'. (Default: 'On')", curSettings.bKeepDistanceEnabled, defaultSettings.bKeepDistanceEnabled, function(state)
-		curSettings.bKeepDistanceEnabled = state
-		GameOptions.SetBool('AI/Vehicle/ChaseTarget', 'KeepDistanceEnabled', state)
-	 end)
-
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/ChaseTarget", "Roads Multiplier", "Lower values AI becomes more willing to cut corners, drive off-road, or take non-standard paths. (Default: 1)", 0.1, 10, 0.1, "%.1f", curSettings.fRoadsMultiplier, defaultSettings.fRoadsMultiplier, function(state)
-        curSettings.fRoadsMultiplier = state
-		GameOptions.SetFloat('AI/Vehicle/ChaseTarget', 'RoadsMultiplier', state)
+    nativeSettings.addRangeInt("/CORPORAT/PersistencyCache", "Pool Budget in Kilobytes", "This is the memory budget (in kilobytes) allocated for the streaming pool (Default: 4096)", 4096, 16384, 4096, curSettings.iPoolBudgetKB, defaultSettings.iPoolBudgetKB, function(state)
+        curSettings.iPoolBudgetKB = state
+		GameOptions.SetInt('World/Streaming/PersistencyCache', 'PoolBudgetKB', state)
     end)
 
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/ChaseTarget", "Stairs Multiplier", "Higher value AI avoids stairs more strongly. (Default: 100)", 1, 100, 1, "%0.1f", curSettings.fStairsMultiplier, defaultSettings.fStairsMultiplier, function(state)
-        curSettings.fStairsMultiplier = state
-		GameOptions.SetFloat('AI/Vehicle/ChaseTarget', 'StairsMultiplier', state)
+--Resouce
+    nativeSettings.addRangeInt("/CORPORAT/ResourceLoaderThrottler", "Flood Min Non-Loading Threads", "This controls the minimum number of threads the game keeps free so it can handle other tasks while streaming/loading resources.(Default: 2)", 0, 8, 1, curSettings.iFloodMinNonLoadingThreads, defaultSettings.iFloodMinNonLoadingThreads, function(state)
+        curSettings.iFloodMinNonLoadingThreads = state
+		GameOptions.SetInt('ResourceLoaderThrottler', 'FloodMinNonLoadingThreads', state)
     end)
 
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/ChaseTarget", "Terrain Multiplier", "It’s part of the surface cost system that tells the AI what kinds of ground are 'safe' or 'worth it' to drive on when deciding how to reach its target. (Default: 4)", 0.1, 10, 0.1, "%.1f", curSettings.fTerrainMultiplier, defaultSettings.fTerrainMultiplier, function(state)
-        curSettings.fTerrainMultiplier = state
-		GameOptions.SetFloat('AI/Vehicle/ChaseTarget', 'TerrainMultiplier', state)
+    nativeSettings.addRangeInt("/CORPORAT/ResourceLoaderThrottler", "Stream Max-Loading Threads", "Determines the maximum number of threads used for streaming resources (textures, models, sounds, etc.) in real-time (Default: 2)*3", 0, 8, 1, curSettings.iStreamMaxLoadingThreads, defaultSettings.iStreamMaxLoadingThreads, function(state)
+        curSettings.iStreamMaxLoadingThreads = state
+		GameOptions.SetInt('ResourceLoaderThrottler', 'StreamMaxLoadingThreads', state)
     end)
 
---[Crowd]
-    nativeSettings.addSwitch("/CORPORATCROWDS/Crowd", "Enabled", "Crowds Enabled (Default: 'On')", curSettings.bEnabled, defaultSettings.bEnabled, function(state)
-		curSettings.bEnabled = state
-		GameOptions.SetBool('Crowd', 'Enabled', state)
-	 end)
-
-    nativeSettings.addSwitch("/CORPORATCROWDS/Crowd", "Enable Pedestrians", "Enable Pedestrians (Default: 'On')", curSettings.bEnablePedestrians, defaultSettings.bEnablePedestrians, function(state)
-		curSettings.bEnablePedestrians = state
-		GameOptions.SetBool('Crowd', 'EnablePedestrians', state)
-	 end)
-
-    nativeSettings.addSwitch("/CORPORATCROWDS/Crowd", "Enable Vehicles", "Enable Vehicles (Default: 'On')", curSettings.bEnableVehicles, defaultSettings.bEnableVehicles, function(state)
-		curSettings.bEnableVehicles = state
-		GameOptions.SetBool('Crowd', 'EnableVehicles', state)
-	 end)
-
-    nativeSettings.addSwitch("/CORPORATCROWDS/Crowd", "Only Corpo Man", "Only Corpo Man (Default: 'Off')", curSettings.bOnlyCorpoMan, defaultSettings.bOnlyCorpoMan, function(state)
-		curSettings.bOnlyCorpoMan = state
-		GameOptions.SetBool('Crowd', 'OnlyCorpoMan', state)
-	 end)
-
-    nativeSettings.addSwitch("/CORPORATCROWDS/Crowd", "Use Frustum", "If Frustum is 'On' NPC outside your field of view are not rendered. (Default: 'On')* ('Off' will reduce the number of NPC's that dissappear when you turn around)*", curSettings.bUseFrustum, defaultSettings.bUseFrustum, function(state)
-		curSettings.bUseFrustum = state
-		GameOptions.SetBool('Crowd', 'UseFrustum', state)
-	 end)
-
-    nativeSettings.addSwitch("/CORPORATCROWDS/Crowd", "Z Cutoff Enabled", "'On' agents outside the cutoff height are ignored for collision, movement, or simulation. Helps optimize tall structures or multi-level areas (Default: 'On')", curSettings.bZCutoffEnabled, defaultSettings.bZCutoffEnabled, function(state)
-		curSettings.bZCutoffEnabled = state
-		GameOptions.SetBool('Crowd', 'ZCutoffEnabled', state)
-	 end)
-
-    nativeSettings.addRangeInt("/CORPORATCROWDS/Crowd", "Z Cutoff", "The value for Z Cutoff height where rendering or simulating NPC crowds is stopped (Default: 20)*60", 1, 120, 1, curSettings.iZCutoff, defaultSettings.iZCutoff, function(state)
-		curSettings.iZCutoff = state
-		GameOptions.SetInt('Crowd', 'ZCutoff', state)
-     end)
-
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/Crowd", "Appropriate Minimum Distance To Player", "NPCs will spawn farther away, avoiding obvious pop-ins, but may leave nearby areas looking emptier until you move (Default: 10)*40", 10, 120, 1, "%.0f", curSettings.fAppropriateMinDistToPlayer, defaultSettings.fAppropriateMinDistToPlayer, function(state)
-        curSettings.fAppropriateMinDistToPlayer = state
-		GameOptions.SetFloat('Crowd', 'AppropriateMinDistToPlayer', state)
+    nativeSettings.addRangeInt("/CORPORAT/ResourceLoaderThrottler", "Trickle Max-Loading Threads", "Limits how many CPU threads can simultaneously load resources during this mode. (Default: 1)*2", 0, 8, 1, curSettings.iTrickleMaxLoadingThreads, defaultSettings.iTrickleMaxLoadingThreads, function(state)
+        curSettings.iTrickleMaxLoadingThreads = state
+		GameOptions.SetInt('ResourceLoaderThrottler', 'TrickleMaxLoadingThreads', state)
     end)
 
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/Crowd", "Appropriate Minimum Last Seen Time", "Keeps NPCs hanging around longer, reducing immersion-breaking vanishing but costing memory/CPU (Default: 10)*40", 10, 120, 1, "%.0f", curSettings.fAppropriateMinLastSeenTime, defaultSettings.fAppropriateMinLastSeenTime, function(state)
-        curSettings.fAppropriateMinLastSeenTime = state
-		GameOptions.SetFloat('Crowd', 'AppropriateMinLastSeenTime', state)
+--Streaming
+    nativeSettings.addRangeInt("/CORPORAT/Streaming", "Max Nodes Per Frame", "Controls the maximum number of 'nodes' the streaming system can process per frame (Default: 300)*500", 300, 700, 25, curSettings.iMaxNodesPerFrame, defaultSettings.iMaxNodesPerFrame, function(state)
+        curSettings.iMaxNodesPerFrame = state
+		GameOptions.SetInt('Streaming', 'MaxNodesPerFrame', state)
     end)
 
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/Crowd", "Despawn Last Seen Minimum Time", "Minimum time that a crowd entity remains active after last being seen by the player. (Default: 20)*40", 10, 120, 1, "%.0f", curSettings.fDespawnLastSeenMinTime, defaultSettings.fDespawnLastSeenMinTime, function(state)
-        curSettings.fDespawnLastSeenMinTime = state
-		GameOptions.SetFloat('Crowd', 'DespawnLastSeenMinTime', state)
+    nativeSettings.addRangeInt("/CORPORAT/Streaming", "Editor Throttled Max Nodes Per Frame", "During normal gameplay it often has little effect unless streaming is the bottleneck. (Default: 500)", 500, 700, 25, curSettings.iEditorThrottledMaxNodesPerFrame, defaultSettings.iEditorThrottledMaxNodesPerFrame, function(state)
+        curSettings.iEditorThrottledMaxNodesPerFrame = state
+		GameOptions.SetInt('Streaming', 'EditorThrottledMaxNodesPerFrame', state)
     end)
 
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/Crowd", "Base Parked Car Probability", "It controls the base probability that the game will spawn parked cars in the world. (Default: 0.80)*0.9", 0.01, 1.0, 0.01, "%.2f", curSettings.fBaseParkedCarProbability, defaultSettings.fBaseParkedCarProbability, function(state)
-        curSettings.fBaseParkedCarProbability = state
-		GameOptions.SetFloat('Crowd', 'BaseParkedCarProbability', state)
+    nativeSettings.addRangeFloat("/CORPORAT/Streaming", "Time Limit Sector Load Per Frame", "It sets a maximum time budget per frame that the engine is allowed to spend loading world sectors. (Default: 2.0)*2.5", 1, 3, .25, "%.2f", curSettings.fTimeLimitSectorLoadPerFrame, defaultSettings.fTimeLimitSectorLoadPerFrame, function(state)
+        curSettings.fTimeLimitSectorLoadPerFrame = state
+		GameOptions.SetFloat('Streaming', 'TimeLimitSectorLoadPerFrame', state)
+	end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/Streaming", "Time Limit Sector Unload Per Frame", "It defines the maximum time budget per frame that the engine may spend unloading world sectors (removing streamed-out geometry, collisions, entities, etc.). (Default: 1.0)*2.5", 1, 3, .25, "%.2f", curSettings.fTimeLimitSectorUnloadPerFrame, defaultSettings.fTimeLimitSectorUnloadPerFrame, function(state)
+        curSettings.fTimeLimitSectorUnloadPerFrame = state
+		GameOptions.SetFloat('Streaming', 'TimeLimitSectorUnloadPerFrame', state)
+	end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/Streaming", "Time Limit Streamed Per Frame", "It caps the total amount of time per frame that the engine may spend on all streaming-related work combined, not just sector load or unload. (Default: 6.0)*3.0", 1, 6, .25, "%.2f", curSettings.fTimeLimitStreamedPerFrame, defaultSettings.fTimeLimitStreamedPerFrame, function(state)
+        curSettings.fTimeLimitStreamedPerFrame = state
+		GameOptions.SetFloat('Streaming', 'TimeLimitStreamedPerFrame', state)
+	end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/Streaming", "Radius Near Secondary Ref Point Addend", "It adds extra distance to the near streaming radius around a secondary streaming reference point, causing sectors near that point to be kept loaded earlier and longer. (Default: 200)*500", 1, 500, 1, "%.1f", curSettings.fRadiusNearSecondaryRefPointAddend, defaultSettings.fRadiusNearSecondaryRefPointAddend, function(state)
+        curSettings.fRadiusNearSecondaryRefPointAddend = state
+		GameOptions.SetFloat('Streaming', 'RadiusNearSecondaryRefPointAddend', state)
+	end)
+
+    nativeSettings.addSwitch("/CORPORAT/Streaming", "Auto Hide Distance Near", "Automatically hides objects that are very close to the camera under certain conditions (Default: 'On')", curSettings.bStreamingCullingAutoHideDistanceNearEnabled, defaultSettings.bStreamingCullingAutoHideDistanceNearEnabled, function(state)
+		curSettings.bStreamingCullingAutoHideDistanceNearEnabled = state
+		GameOptions.SetBool('Streaming/Culling/AutoHideDistanceNear', 'Enabled', state)
+	end)
+
+--Streaming/Culling
+    nativeSettings.addSwitch("/CORPORAT/StreamingCulling", "Strict", "The engine may cull objects more aggressively, even at closer distances or lower importance (Default: 'Off')", curSettings.bStrict, defaultSettings.bStrict, function(state)
+		curSettings.bStrict = state
+		GameOptions.SetBool('Streaming/Culling', 'Strict', state)
+	end)
+
+--SHARC
+    nativeSettings.addSwitch("/CORPORAT/SHARC", "Enable SHaRC", "Enables or disables Spatially Hashed Radiance Cache (SHaRC) (Default: 'On')", curSettings.bSHARC_Enable, defaultSettings.bSHARC_Enable, function(state)
+		curSettings.bSHARC_Enable = state
+		GameOptions.SetBool('Editor/SHARC', 'Enable', state)
+	end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/SHARC", "Scene Scale", "Adjust the SHaRC voxel data size, a buffer with 128-bit entries which stores accumulated radiance and sample count. Two instances are used to store current and previous frame data (Default: 50)*100", 30, 300, 5, "%.0f", curSettings.fSHARC_SceneScale, defaultSettings.fSHARC_SceneScale, function(state)
+        curSettings.fSHARC_SceneScale = state
+		GameOptions.SetFloat('Editor/SHARC', 'SceneScale', state)
+	end)
+
+    nativeSettings.addRangeInt("/CORPORAT/SHARC", "Number of SHaRC bounces", "Adjust the Number of Light Bounces used by SHaRC (Default: 4)", 2, 5, 1, curSettings.iSHARC_Bounces, defaultSettings.iSHARC_Bounces, function(state)
+        curSettings.iSHARC_Bounces = state
+		GameOptions.SetInt('Editor/SHARC', 'Bounces', state)
     end)
 
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/Crowd", "Minimum Streaming Velocity Normalized To Block Spawn", "If the player is moving faster than this threshold, the game tries to avoid spawning new crowds/vehicles directly in front of you to prevent obvious pop-in (Default: 10)", 10, 120, 1, "%.0f", curSettings.fMinStreamingVelocityNormalizedToBlockSpawn, defaultSettings.fMinStreamingVelocityNormalizedToBlockSpawn, function(state)
-        curSettings.fMinStreamingVelocityNormalizedToBlockSpawn = state
-		GameOptions.SetFloat('Crowd', 'MinStreamingVelocityNormalizedToBlockSpawn', state)
+    nativeSettings.addSwitch("/CORPORAT/SHARC", "SHaRC Use DI at Primary", "Determines whether RTXDI lighting is applied at the primary ray intersection (first surface hit). Primary rays are the first rays cast from the camera; using RTXDI here affects the initial lighting evaluation for surfaces. (Default: 'Off')*", curSettings.bUseRTXDIAtPrimary, defaultSettings.bUseRTXDIAtPrimary, function(state)
+		curSettings.bUseRTXDIAtPrimary = state
+		GameOptions.SetBool('Editor/SHARC', 'UseRTXDIAtPrimary', state)
+	end)
+
+    nativeSettings.addSwitch("/CORPORAT/SHARC", "SHaRC Use DI with Albedo", "Determines whether RTXDI accounts for surface albedo (base color) when calculating lighting. Using albedo ensures the indirect lighting interacts correctly with surface colors, producing more realistic results. (Default: 'On')", curSettings.bUseRTXDIWithAlbedo, defaultSettings.bUseRTXDIWithAlbedo, function(state)
+		curSettings.bUseRTXDIWithAlbedo = state
+		GameOptions.SetBool('Editor/SHARC', 'UseRTXDIWithAlbedo', state)
+	end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/SHARC", "Previous Frame Bias Allowance", "It determines how much trust or bias the current SHARC frame gives to the previous frame’s lighting data, affecting temporal stability and ghosting. (Default: 0.25)*1.0", 0, 1, .01, "%.2f", curSettings.fUsePrevFrameBiasAllowance, defaultSettings.fUsePrevFrameBiasAllowance, function(state)
+        curSettings.fUsePrevFrameBiasAllowance = state
+		GameOptions.SetFloat('Editor/SHARC', 'UsePrevFrameBiasAllowance', state)
+	end)
+
+    nativeSettings.addSwitch("/CORPORAT/SHARC", "Use Previous Frame", "Controls whether SHARC reuses temporal data from the previous frame for faster and smoother ray-traced results. (Default: 'On')*", curSettings.bUsePrevFrame, defaultSettings.bUsePrevFrame, function(state)
+		curSettings.bUsePrevFrame = state
+		GameOptions.SetBool('Editor/SHARC', 'UsePrevFrame', state)
+	end)
+
+    nativeSettings.addRangeInt("/CORPORAT/SHARC", "History Reset", "This parameter instructs SHARC how often to clear or reinitialize its temporal history buffers. (Default: 15)*1", 0, 15, 1, curSettings.iHistoryReset, defaultSettings.iHistoryReset, function(state)
+        curSettings.iHistoryReset = state
+		GameOptions.SetInt('Editor/SHARC', 'HistoryReset', state)
+	end)
+
+    nativeSettings.addSwitch("/CORPORAT/SHARC", "Clear", "This is effectively a manual cache invalidation trigger. (Default: 'Off')*", curSettings.bClear, defaultSettings.bClear, function(state)
+		curSettings.bClear = state
+		GameOptions.SetBool('Editor/SHARC', 'Clear', state)
+	end)
+
+    nativeSettings.addRangeInt("/CORPORAT/SHARC", "Down Scale Factor", "determines how much the SHARC cache is rendered at a lower resolution (Default: 5)", 1, 8, 1, curSettings.iSHARC_DownscaleFactor, defaultSettings.iSHARC_DownscaleFactor, function(state)
+        curSettings.iSHARC_DownscaleFactor = state
+		GameOptions.SetInt('Editor/SHARC', 'DownscaleFactor', state)
     end)
 
-    nativeSettings.addRangeInt("/CORPORATCROWDS/Traffic", "Spawn Limit", "More NPCs can be active, making the city feel busier, but can heavily impact performance — especially in areas like Japantown or markets. (Default: 1)*18", 1, 30, 1, curSettings.iSpawnLimit, defaultSettings.iSpawnLimit, function(state)
-		curSettings.iSpawnLimit = state
-		GameOptions.SetInt('Crowd', 'SpawnLimit', state)
-     end)
-
---[Editor/Navigation]
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/Navigation", "Traffic Distance Threshold", "Cars appear further away, reducing visible pop-in but at a performance cost (more vehicles active at once). (Default: 10)*40", 10, 100, 1, "%.0f", curSettings.fTrafficDistanceThreshold, defaultSettings.fTrafficDistanceThreshold, function(state)
-        curSettings.fTrafficDistanceThreshold = state
-		GameOptions.SetFloat('Editor/Navigation', 'TrafficDistanceThreshold', state)
+--Rendering/LUT
+    nativeSettings.addRangeInt("/CORPORAT/LUT", "LUT Size in Cubic", "Adjust the LUT size for more accurate color grading (Default: 48)*64", 48, 64, 16, curSettings.iLUTSize, defaultSettings.iLUTSize, function(state)
+        curSettings.iLUTSize = state
+		GameOptions.SetInt('Rendering/LUT', 'Size', state)
     end)
 
---[Traffic]
-    nativeSettings.addSwitch("/CORPORATCROWDS/Traffic", "Disable LOD", "No LOD switching. All traffic cars look fully detailed, even far away. (Default: 'On')", curSettings.bDisableLOD, defaultSettings.bDisableLOD, function(state)
-		curSettings.bDisableLOD = state
-		GameOptions.SetBool('Traffic', 'DisableLOD', state)
-	 end)
-
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/Traffic", "Death Limit", "Controls the number of vehicles/pedestrians to be killed/destroyed before the system starts auto-despawning or ignoring further 'death' events. (Default: 10)", 1, 20, 1, "%.0f", curSettings.fDeathLimit, defaultSettings.fDeathLimit, function(state)        
-		curSettings.fDeathLimit = state
-		GameOptions.SetFloat('Traffic', 'DeathLimit', state)
-	end)
-
-    nativeSettings.addSwitch("/CORPORATCROWDS/Traffic", "Uncrowd MultiLane Roads", "Uncrowd MultiLane Roads, less traffic when driving (Default: 'On')*", curSettings.bUncrowdMultiLaneRoads, defaultSettings.bUncrowdMultiLaneRoads, function(state)
-		curSettings.bUncrowdMultiLaneRoads = state
-		GameOptions.SetBool('Traffic', 'UncrowdMultiLaneRoads', state)
-	 end)
-
-    nativeSettings.addSwitch("/CORPORATCROWDS/Traffic", "Uncrowd One Lane Roads", "Uncrowd One Lane Roads, less traffic when driving (Default: 'On')*", curSettings.bUncrowdOneLaneRoads, defaultSettings.bUncrowdOneLaneRoads, function(state)
-		curSettings.bUncrowdOneLaneRoads = state
-		GameOptions.SetBool('Traffic', 'UncrowdOneLaneRoads', state)
-	 end)
-
-    nativeSettings.addSwitch("/CORPORATCROWDS/Traffic", "Stop Spawn", "This controls whether new traffic vehicles are spawned (Default: 'Off')", curSettings.bStopSpawn, defaultSettings.bStopSpawn, function(state)
-		curSettings.bStopSpawn = state
-		GameOptions.SetBool('Traffic', 'StopSpawn', state)
-	 end)
-
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/Traffic", "Left Lane Speed Increase", "This controls how much faster vehicles in the left lane drive compared to the base speed (Default: 0.1)*2.8", 0.1, 5.0, 0.1, "%.1f", curSettings.fleftLaneSpeedIncrease, defaultSettings.fleftLaneSpeedIncrease, function(state)
-        curSettings.fleftLaneSpeedIncrease = state
-		GameOptions.SetFloat('Traffic', 'leftLaneSpeedIncrease', state)
-	end)
-
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/Traffic", "Minimum Drive Speed", "This ensures that traffic vehicles never slow below a certain speed (Default: 5)", 1.0, 15.0, 1.0, "%.0f", curSettings.fMinDriveSpeed, defaultSettings.fMinDriveSpeed, function(state)       
-		curSettings.fMinDriveSpeed = state
-		GameOptions.SetFloat('Traffic', 'MinDriveSpeed', state)
-	end)
-
-    nativeSettings.addSwitch("/CORPORATCROWDS/Traffic", "Speed Splicing", "If 'On', vehicles instantly snap to target speeds without interpolation. (Default: 'Off')", curSettings.bSpeedSplicing, defaultSettings.bSpeedSplicing, function(state)
-		curSettings.bSpeedSplicing = state
-		GameOptions.SetBool('Traffic', 'SpeedSplicing', state)
-	 end)
-
-    nativeSettings.addSwitch("/CORPORATCROWDS/Traffic", "Safety Measure", "Controls whether vehicles take additional precautions to avoid collisions, pedestrians, or unsafe maneuvers (Default: 'Off')*", curSettings.bSafetyMeasure, defaultSettings.bSafetyMeasure, function(state)
-		curSettings.bSafetyMeasure = state
-		GameOptions.SetBool('Traffic', 'SafetyMeasure', state)
-	 end)
-
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/Traffic", "Safety Measure Distance", "Sets how much space to keep before deciding to take action (Default: 1.0)", 0.1, 10.0, 0.1, "%.1f", curSettings.fSafetyMeasureDistance, defaultSettings.fSafetyMeasureDistance, function(state)
-		curSettings.fSafetyMeasureDistance = state
-		GameOptions.SetBool('Traffic', 'SafetyMeasureDistance', state)
-	 end)
-
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/Traffic", "Slot Lane Occupancy Area Pedestrian Length", "Pedestrians will 'reserve' more space ahead/behind them, leading to wider gaps. (Default: 2.5)", 0.1, 10.0, 0.1, "%.1f", curSettings.fSlotLaneOccupancyArea_Pedestrian, defaultSettings.fSlotLaneOccupancyArea_Pedestrian, function(state)       
-		curSettings.fSlotLaneOccupancyArea_Pedestrian = state
-		GameOptions.SetFloat('Traffic', 'SlotLaneOccupancyArea_Pedestrian', state)
-	end)
-
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/Traffic", "Slot Lane Occupancy Area Vehicle Length", "Vehicles will 'reserve' more space ahead/behind them, leading to wider gaps in traffic (more cautious spacing). (Default: 6)*1", 0.1, 10.0, 0.1, "%.1f", curSettings.fSlotLaneOccupancyArea_Vehicle_Length, defaultSettings.fSlotLaneOccupancyArea_Vehicle_Length, function(state)       
-		curSettings.fSlotLaneOccupancyArea_Vehicle_Length = state
-		GameOptions.SetFloat('Traffic', 'SlotLaneOccupancyArea_Vehicle_Length', state)
-	end)
-
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/Traffic", "Spot Detection Precision", "The sampling resolution for 'spot' checks, used for detecting collisions or potential hazards. (Default: 5)", 0.1, 10.0, 0.1, "%.1f", curSettings.fSpotDetectionPrecision, defaultSettings.fSpotDetectionPrecision, function(state)       
-		curSettings.fSpotDetectionPrecision = state
-		GameOptions.SetFloat('Traffic', 'SpotDetectionPrecision', state)
-	end)
-
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/Traffic", "Spot Detection Range", "Defines the maximum distance that a traffic vehicle’s 'sensor' or detection system looks. (Default: 3)", 0.1, 10.0, 0.1, "%.1f", curSettings.fSpotDetectionRange, defaultSettings.fSpotDetectionRange, function(state)       
-		curSettings.fSpotDetectionRange = state
-		GameOptions.SetFloat('Traffic', 'SpotDetectionRange', state)
-	end)
-
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/Traffic", "Player Prediction", "How much the AI tries to 'guess' where you’ll be in the near future. (Default: 30)", 1, 50.0, 1.0, "%.0f", curSettings.fPlayerPrediction, defaultSettings.fPlayerPrediction, function(state)       
-		curSettings.fPlayerPrediction = state
-		GameOptions.SetFloat('Traffic', 'PlayerPrediction', state)
-	end)
-
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/Traffic", "Green Wave Average Predicted Car Speed", "This setting defines the average vehicle speed (in meters per second) that the traffic system assumes when calculating the timing and spacing of green waves. (Default: 10)", 1, 60.0, 1.0, "%.0f", curSettings.fGreenWaveAveragePredictedCarSpeed, defaultSettings.fGreenWaveAveragePredictedCarSpeed, function(state)       
-		curSettings.fGreenWaveAveragePredictedCarSpeed = state
-		GameOptions.SetFloat('Traffic', 'GreenWaveAveragePredictedCarSpeed', state)
-	end)
-    
-	nativeSettings.addRangeFloat("/CORPORATCROWDS/Traffic", "Green Wave Length", "This setting defines the distance or “wavelength” of the green wave in meters — basically, the spatial interval between green light phases along a coordinated corridor. (Default: 300)", 50, 600, 1.0, "%.0f", curSettings.fGreenWaveLength, defaultSettings.fGreenWaveLength, function(state)       
-		curSettings.fGreenWaveLength = state
-		GameOptions.SetFloat('Traffic', 'GreenWaveLength', state)
-	end)
-    
-	nativeSettings.addRangeFloat("/CORPORATCROWDS/Traffic", "Min Time Before Green Wave", "his setting defines the minimum amount of time that must pass before a traffic light participates in a green wave after it has switched red. (Default: 7)", 1, 9.0, 0.1, "%.1f", curSettings.fMinTimeBeforeGreenWave, defaultSettings.fMinTimeBeforeGreenWave, function(state)       
-		curSettings.fMinTimeBeforeGreenWave = state
-		GameOptions.SetFloat('Traffic', 'MinTimeBeforeGreenWave', state)
-	end)
-    
-	nativeSettings.addRangeFloat("/CORPORATCROWDS/Traffic", "Max Time Before Green Wave", "This parameter defines the maximum amount of time a traffic light will wait before it participates in a green wave, even if the synchronization conditions aren’t ideal yet. (Default: 10)", 10, 50.0, 0.1, "%.1f", curSettings.fMaxTimeBeforeGreenWave, defaultSettings.fMaxTimeBeforeGreenWave, function(state)       
-		curSettings.fMaxTimeBeforeGreenWave = state
-		GameOptions.SetFloat('Traffic', 'MaxTimeBeforeGreenWave', state)
-	end)
-
---[CrowdMovement]
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/CrowdMovement", "Ahead Angle Max", "Defines the half-cone in front of an NPC that the game treats as “forward space” for obstacle detection. (Default: 45)*80", 45, 120, 1, "%.0f", curSettings.fAheadAngleMax, defaultSettings.fAheadAngleMax, function(state)
-        curSettings.fAheadAngleMax = state
-		GameOptions.SetFloat('CrowdMovement', 'AheadAngleMax', state)
-	end)
-
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/CrowdMovement", "Ahead Angle Min", "It’s essentially the inner boundary of the forward vision cone, area where peds care about what is in front of them (Default: 30)*20", 20, 40, 1, "%.0f", curSettings.fAheadAngleMin, defaultSettings.fAheadAngleMin, function(state)
-        curSettings.fAheadAngleMin = state
-		GameOptions.SetFloat('CrowdMovement', 'AheadAngleMin', state)
-	end)
-
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/CrowdMovement", "Ahead Distance Max", "Maximum distance ahead that each NPC considers when determining movement, path smoothing, and collision avoidance. (Default: 2)*10", 3, 10, 1, "%.0f", curSettings.fAheadDistanceMax, defaultSettings.fAheadDistanceMax, function(state)
-        curSettings.fAheadDistanceMax = state
-		GameOptions.SetFloat('CrowdMovement', 'AheadDistanceMax', state)
-	end)
-
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/CrowdMovement", "Ahead Distance Min", "Minimum distance ahead that each NPC considers when determining movement, path smoothing, and collision avoidance. (Default: 1)", 1, 3, 1, "%.0f", curSettings.fAheadDistanceMin, defaultSettings.fAheadDistanceMin, function(state)
-        curSettings.fAheadDistanceMin = state
-		GameOptions.SetFloat('CrowdMovement', 'AheadDistanceMin', state)
-	end)
-
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/CrowdMovement", "Distance To Stop Buffer", "This defines an extra safety margin around the stop point. Even after the NPC decides 'I should stop', this buffer prevents them from overshooting or bumping into things. (Default: 0.25)", 0.01, 1, 0.01, "%.2f", curSettings.fDistanceToStopBuffer, defaultSettings.fDistanceToStopBuffer, function(state)
-        curSettings.fDistanceToStopBuffer = state
-		GameOptions.SetFloat('CrowdMovement', 'DistanceToStopBuffer', state)
-	end)
-
-   nativeSettings.addSwitch("/CORPORATCROWDS/CrowdMovement", "Enable Direction Post Process", "Walking animations and turns look more natural (Default: 'Off')*", curSettings.bEnableDirectionPostProcess, defaultSettings.bEnableDirectionPostProcess, function(state)
-		curSettings.bEnableDirectionPostProcess = state
-		GameOptions.SetBool('CrowdMovement', 'EnableDirectionPostProcess', state)
-	 end)
-
-    nativeSettings.addSwitch("/CORPORATCROWDS/CrowdMovement", "Enable Direction Smoothing", "Better avoidance behavior; NPCs are less likely to collide abruptly. (Default: 'On')", curSettings.bEnableDirectionSmoothing, defaultSettings.bEnableDirectionSmoothing, function(state)
-		curSettings.bEnableDirectionSmoothing = state
-		GameOptions.SetBool('CrowdMovement', 'EnableDirectionSmoothing', state)
-	 end)
-
-    nativeSettings.addSwitch("/CORPORATCROWDS/CrowdMovement", "Fence Gap Repulsors", "Improves crowd navigation in tight urban areas. (Default: 'Off')*", curSettings.bFenceGapRepulsors, defaultSettings.bFenceGapRepulsors, function(state)
-		curSettings.bFenceGapRepulsors = state
-		GameOptions.SetBool('CrowdMovement', 'FenceGapRepulsors', state)
-	 end)
-
-    nativeSettings.addSwitch("/CORPORATCROWDS/CrowdMovement", "Force Stop Colliders", "When 'Off' NPCs may slow down or adjust direction instead of stopping outright. (Default: 'Off')", curSettings.bForceStopColliders, defaultSettings.bForceStopColliders, function(state)
-		curSettings.bForceStopColliders = state
-		GameOptions.SetBool('CrowdMovement', 'ForceStopColliders', state)
-	 end)
-
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/CrowdMovement", "Fear Spread Radius", "Panicked behavior spreads to more nearby NPCs, crowds react more dramatically to events (Default: 10)", 1, 20, 1, "%.0f", curSettings.fFearSpreadRadius, defaultSettings.fFearSpreadRadius, function(state)
-        curSettings.fFearSpreadRadius = state
-		GameOptions.SetFloat('CrowdMovement', 'FearSpreadRadius', state)
-	end)
-
-    nativeSettings.addSwitch("/CORPORATCROWDS/CrowdMovement", "Global Disable LOD", "When 'On' LOD is disabled for all crowd NPCs. NPCs look fully detailed at any distance. (Default: 'Off')*", curSettings.bGlobalDisableLOD, defaultSettings.bGlobalDisableLOD, function(state)
-		curSettings.bGlobalDisableLOD = state
-		GameOptions.SetBool('CrowdMovement', 'GlobalDisableLOD', state)
-	 end)
-
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/CrowdMovement", "Lane Lights Recognition Distance", "This defines the distance at which NPC pedestrians detect and 'recognize' traffic lights that control crosswalks. (Default: 25)", 1, 35, 1, "%.0f", curSettings.fLaneLightsRecognitionDistance, defaultSettings.fLaneLightsRecognitionDistance, function(state)
-        curSettings.fLaneLightsRecognitionDistance = state
-		GameOptions.SetFloat('CrowdMovement', 'LaneLightsRecognitionDistance', state)
-	end)
-
-    nativeSettings.addSwitch("/CORPORATCROWDS/CrowdMovement", "Narrow Gap Repulsors", "NPCs avoid narrow gaps, preferring safer, wider paths. (Default: 'Off')", curSettings.bNarrowGapRepulsors, defaultSettings.bNarrowGapRepulsors, function(state)
-		curSettings.bNarrowGapRepulsors = state
-		GameOptions.SetBool('CrowdMovement', 'NarrowGapRepulsors', state)
-	 end)
-
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/CrowdMovement", "Near End Distance", "At higher values NPCs will stop or switch to their next action earlier, without walking all the way to the exact endpoint (Default: 2)", 1, 10, 0.1, "%.1f", curSettings.fNearEndDistance, defaultSettings.fNearEndDistance, function(state)
-        curSettings.fNearEndDistance = state
-		GameOptions.SetFloat('CrowdMovement', 'NearEndDistance', state)
-	end)
-
-    nativeSettings.addSwitch("/CORPORATCROWDS/CrowdMovement", "No Gameplay No Update", "No Gameplay No Update (Default: 'Off')", curSettings.bNoGameplayNoUpdate, defaultSettings.bNoGameplayNoUpdate, function(state)
-		curSettings.bNoGameplayNoUpdate = state
-		GameOptions.SetBool('CrowdMovement', 'NoGameplayNoUpdate', state)
-	 end)
-
-    nativeSettings.addRangeInt("/CORPORATCROWDS/CrowdMovement", "Slope Samples", "More sampling points = smoother and more accurate slope detection (NPCs adapt better to ramps/stairs) but slightly more CPU cost. (Default: 10)*15", 5, 20, 1, curSettings.iSlopeSamples, defaultSettings.iSlopeSamples, function(state)
-        curSettings.iSlopeSamples = state
-		GameOptions.SetInt('CrowdMovement', 'SlopeSamples', state)
+    nativeSettings.addRangeFloat("/CORPORAT/LUT", "LUT Max Range", "Defines how bright highlights are interpreted and displayed (Default: 100)", 10, 100, 1, "%.0f", curSettings.fLUTMaxRange, defaultSettings.fLUTMaxRange, function(state)
+        curSettings.fLUTMaxRange = state
+		GameOptions.SetFloat('Rendering/LUT', 'MaxRange', curSettings.fLUTMaxRange)
     end)
 
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/CrowdMovement", "Traffic Light Relevant Distance", "This controls how far away pedestrians or NPCs start reacting to traffic lights (Default: 4)", 1, 20, 1, "%.0f", curSettings.fTrafficLightRelevantDistance, defaultSettings.fTrafficLightRelevantDistance, function(state)
-        curSettings.fTrafficLightRelevantDistance = state
-		GameOptions.SetFloat('CrowdMovement', 'TrafficLightRelevantDistance', state)
-	end)
-
---[Crowds]
-     nativeSettings.addRangeFloat("/CORPORATCROWDS/Crowds", "Enter Workspot Delay", "Defines how long an NPC waits after reaching the spot before starting the assigned animation or activity (Default: 10)", 1, 20, 1, "%.0f", curSettings.fEnterWorkspotDelay, defaultSettings.fEnterWorkspotDelay, function(state)
-        curSettings.fEnterWorkspotDelay = state
-		GameOptions.SetFloat('Crowds', 'EnterWorkspotDelay', state)
+	nativeSettings.addSelectorString("/CORPORAT/LUT", "LUT Min Range", "Expand bottom of histogram to avoid crushing black floor (Default: 0.001)*0.000000000001", LUTlist, curSettings.iLUTMinRange_Index, defaultSettings.iLUTMinRange_Index, function(value)
+		curSettings.fLUTMinRange = LUTlist[value]
+		curSettings.iLUTMinRange_Index = value
+		GameOptions.SetFloat('Rendering/LUT', "MinRange", tonumber(LUTlist[value]))
 	end)
  
-   nativeSettings.addSwitch("/CORPORATCROWDS/Crowds", "Check On Lane Use Lookup", "NPCs use the lookup table to see if a lane is already occupied or 'safe' to enter. (Default: 'Off')*", curSettings.bCheckOnLaneUseLookup, defaultSettings.bCheckOnLaneUseLookup, function(state)
-		curSettings.bCheckOnLaneUseLookup = state
-		GameOptions.SetBool('Crowds', 'CheckOnLaneUseLookup', state)
-	 end)
-
-    nativeSettings.addSwitch("/CORPORATCROWDS/Crowds", "Enable Items", "Enable Items (Default: 'On')", curSettings.bEnableItems, defaultSettings.bEnableItems, function(state)
-		curSettings.bEnableItems = state
-		GameOptions.SetBool('Crowds', 'EnableItems', state)
-	 end)
-
-    nativeSettings.addSwitch("/CORPORATCROWDS/Crowds", "Marble Paths History", "Determines whether the system records the past positions and movement decisions of NPCs (Default: 'Off')*", curSettings.bMarblePathsHistoryEnabled, defaultSettings.bMarblePathsHistoryEnabled, function(state)
-		curSettings.bMarblePathsHistoryEnabled = state
-		GameOptions.SetBool('Crowds', 'MarblePathsHistoryEnabled', state)
-	 end)
-
-     nativeSettings.addRangeFloat("/CORPORATCROWDS/Crowds", "Max Speed Driving On Pavement", "Essentially, it acts as a clamp or normalization cap for how much a vehicle’s speed influences crowd panic intensity. (Default: 40)", 10, 100, 1, "%.0f", curSettings.fMaxSpeedDrivingOnPavement, defaultSettings.fMaxSpeedDrivingOnPavement, function(state)
-        curSettings.fMaxSpeedDrivingOnPavement = state
-		GameOptions.SetFloat('Crowds', 'MaxSpeedDrivingOnPavement', state)
+--RayTracing
+    nativeSettings.addSwitch("/CORPORAT/RayTracing", "Raytraced Shadow Cascades", "Attempts to get around quality issues associated with traditional shadow mapping by splitting the camera frustum into multiple 'cascades' (Default 'Off')", curSettings.bEnableShadowCascades, defaultSettings.bEnableShadowCascades, function(state)
+		curSettings.bEnableShadowCascades = state
+		GameOptions.SetBool('RayTracing', 'EnableShadowCascades', state)
 	end)
 
-     nativeSettings.addRangeFloat("/CORPORATCROWDS/Crowds", "Exponent Driving On Pavement", "Higher exponent pedestrians react more dramatically (Default: 2.0)", 0.1, 5, 0.1, "%.1f", curSettings.fExponentDrivingOnPavement, defaultSettings.fExponentDrivingOnPavement, function(state)
-        curSettings.fExponentDrivingOnPavement = state
-		GameOptions.SetFloat('Crowds', 'ExponentDrivingOnPavement', state)
+    nativeSettings.addRangeFloat("/CORPORAT/RayTracing", "Culling Distance Character", "Distance at wich NPC are removed (Default: 15) Above 15 can cause NPC to explode in large crowds when using population mods", 15, 75, 1, "%.0f", curSettings.fCullingDistanceCharacter, defaultSettings.fCullingDistanceCharacter, function(state)
+		curSettings.fCullingDistanceCharacter = state
+		GameOptions.SetFloat('RayTracing', 'CullingDistanceCharacter', state)
 	end)
 
---[MovementPolicies]
-    nativeSettings.addSwitch("/CORPORATCROWDS/MovementPolicies", "Move Away From Target On Influence Map", "When 'On' AI will try to avoid areas marked as dangerous or undesirable, can prevent crowding, improve evasive behavior, or simulate threat avoidance (Default: 'Off')*", curSettings.bMoveAwayFromTargetOnInfluenceMap, defaultSettings.bMoveAwayFromTargetOnInfluenceMap, function(state)
-		curSettings.bMoveAwayFromTargetOnInfluenceMap = state
-		GameOptions.SetBool('MovementPolicies', 'MoveAwayFromTargetOnInfluenceMap', state)
-	 end)
-
-    nativeSettings.addSwitch("/CORPORATCROWDS/MovementPolicies", "Run From Threat On Influence Map", "'On' NPCs detect nearby threats and actively try to move away from them using the influence map. (Default: 'Off')*", curSettings.bRunFromThreatOnInfluenceMap, defaultSettings.bRunFromThreatOnInfluenceMap, function(state)
-		curSettings.bRunFromThreatOnInfluenceMap = state
-		GameOptions.SetBool('MovementPolicies', 'RunFromThreatOnInfluenceMap', state)
-	 end)
-
-
---[VehicleAI]
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/VehicleAI", "Perception Collision Propagation Area", "Defines the radius around a vehicle in which collision events or impacts influence AI decisions (Default: 2.0)", 1, 5, 0.01, "%.2f", curSettings.fPerceptionCollisionPropagationArea, defaultSettings.fPerceptionCollisionPropagationArea, function(state)
-        curSettings.fPerceptionCollisionPropagationArea = state
-		GameOptions.SetFloat('VehicleAI', 'PerceptionCollisionPropagationArea', state)
+    nativeSettings.addRangeFloat("/CORPORAT/RayTracing", "Culling Distance Vehicle", "Distance at wich Vehicles are removed, above default vehicles will spawn on top of eacher other when using population increasing mods (Default: 40)", 40, 75, 1, "%.0f", curSettings.fCullingDistanceVehicle, defaultSettings.fCullingDistanceVehicle, function(state)
+		curSettings.fCullingDistanceVehicle = state
+		GameOptions.SetFloat('RayTracing', 'CullingDistanceVehicle', state)
 	end)
 
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/VehicleAI", "Perception Target Propagation Area", "Specifies the radius around the vehicle in which the AI considers other targets when planning maneuvers (Default: 1.5)", 1, 5, 0.01, "%.2f", curSettings.fPerceptionTargetPropagationArea, defaultSettings.fPerceptionTargetPropagationArea, function(state)
-        curSettings.fPerceptionTargetPropagationArea = state
-		GameOptions.SetFloat('VehicleAI', 'PerceptionTargetPropagationArea', state)
+    nativeSettings.addSwitch("/CORPORAT/RayTracing", "Enable Shadow Optimizations", "When enabled the game applies optimizations to how RT shadows are computed and rendered — this can reduce performance cost with little visible difference. When disabled shadows may be slightly more accurate but at a higher GPU cost. (Default: 'On')", curSettings.bEnableShadowOptimizations, defaultSettings.bEnableShadowOptimizations, function(state)
+		curSettings.bEnableShadowOptimizations = state
+		GameOptions.SetBool('RayTracing', 'EnableShadowOptimizations', state)
 	end)
 
-
---[Vehicle]
-	 nativeSettings.addSelectorString("/CORPORATCROWDS/Vehicle", "Pop Tire", "This controls whether (and sometimes how) a vehicle’s tires can burst/pop when damaged by gunfire, collisions, or scripted events. (Default: Off)*", BoolList, curSettings.iBoolList_Index, defaultSettings.iBoolList_Index, function(state)
-		curSettings.iPopTire = ((curSettings.iBoolList_Index) - 1)
-		curSettings.iBoolList_Index = state
-		GameOptions.SetInt('Vehicle', 'PopTire', ((curSettings.iBoolList_Index) - 1))
-	 end)
-
-    nativeSettings.addSwitch("/CORPORATCROWDS/Vehicle", "Toggle Tire Shooting", "Tires can be targeted and destroyed by bullets, explosions, or melee attacks. (Default: 'Off')*", curSettings.bToggleTireShooting, defaultSettings.bToggleTireShooting, function(state)
-		curSettings.bToggleTireShooting = state
-		GameOptions.SetBool('Vehicle', 'ToggleTireShooting', state)
-	 end)
-
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/Vehicle", "Force Move To Max Linear Speed", "This parameter defines how aggressively a vehicle ramps up to its top linear speed (Default: 30)", 1, 150, 1, "%.0f", curSettings.fForceMoveToMaxLinearSpeed, defaultSettings.fForceMoveToMaxLinearSpeed, function(state)
-        curSettings.fForceMoveToMaxLinearSpeed = state
-		GameOptions.SetFloat('Vehicle', 'ForceMoveToMaxLinearSpeed', state)
+    nativeSettings.addSwitch("/CORPORAT/RayTracing", "Enable Raytraced Global Shadow", "Determines whether global shadows are computed using ray tracing (Default: 'On')", curSettings.bEnableGlobalShadow, defaultSettings.bEnableGlobalShadow, function(state)
+		curSettings.bEnableGlobalShadow = state
+		GameOptions.SetBool('RayTracing', 'EnableGlobalShadow', state)
 	end)
 
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/Vehicle", "Force Move To Max Angular Speed", "This option defines how aggressively a vehicle can rotate toward its maximum angular speed (Default: 5)", 1, 25, 1, "%.0f", curSettings.fForceMoveToMaxAngularSpeed, defaultSettings.fForceMoveToMaxAngularSpeed, function(state)
-        curSettings.fForceMoveToMaxAngularSpeed = state
-		GameOptions.SetFloat('Vehicle', 'ForceMoveToMaxAngularSpeed', state)
+    nativeSettings.addSwitch("/CORPORAT/RayTracing", "Enable Local Raytraced Shadow", "Determines whether local shadows are computed using ray tracing (Default: 'On')", curSettings.bEnableLocalShadow, defaultSettings.bEnableLocalShadow, function(state)
+		curSettings.bEnableLocalShadow = state
+		GameOptions.SetBool('RayTracing', 'EnableLocalShadow', state)
 	end)
 
-    nativeSettings.addSwitch("/CORPORATCROWDS/Vehicle", "Physics Continuous Collision Detection", "Better accuracy in high-speed collisions, cars less likely to clip through objects (Default: 'Off')*", curSettings.bphysicsCCD, defaultSettings.bphysicsCCD, function(state)
-		curSettings.bphysicsCCD = state
-		GameOptions.SetBool('Vehicle', 'physicsCCD', state)
-	 end)
-
---[ObjectSelection]
-    nativeSettings.addRangeInt("/CORPORATCROWDS/ObjectSelection", "Max Find Paths Limit", "This option throttles how many object pathfinding requests can be processed in a single frame (Default: 3)", 1, 20, 1, curSettings.iMaxFindPathsLimit, defaultSettings.iMaxFindPathsLimit, function(state)
-        curSettings.iMaxFindPathsLimit = state
-		GameOptions.SetInt('ObjectSelection', 'MaxFindPathsLimit', state)
-    end)
-
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/ObjectSelection", "Max Find Paths Time Limit Ms", "Controls how long the vehicle AI pathfinder is allowed to spend searching for a route per update/frame before it gives up. (Default: 5)", 1, 20, 1, "%.0f", curSettings.fForceMoveToMaxAngularSpeed, defaultSettings.fForceMoveToMaxAngularSpeed, function(state)
-        curSettings.fForceMoveToMaxAngularSpeed = state
-		GameOptions.SetFloat('ObjectSelection', 'MaxFindPathsTimeLimitMs', state)
+    nativeSettings.addSwitch("/CORPORAT/RayTracing", "Enable Importance Sampling", "This approach reduces noise and speeds up rendering by focusing on the most meaningful samples (Default: 'On')", curSettings.bEnableImportanceSampling, defaultSettings.bEnableImportanceSampling, function(state)
+		curSettings.bEnableImportanceSampling = state
+		GameOptions.SetBool('RayTracing', 'EnableImportanceSampling', state)
 	end)
 
---[GameSenses]
-    nativeSettings.addRangeInt("/CORPORATCROWDS/GameSenses", "Ray Tests Per Thread Limit", "AI can check more sight lines per frame → more accurate detection in dense scenes, but heavier CPU usage. (Default: 20)", 10, 80, 1, curSettings.iRayTestsPerThreadLimit, defaultSettings.iRayTestsPerThreadLimit, function(state)
-        curSettings.iRayTestsPerThreadLimit = state
-		GameOptions.SetInt('GameSenses', 'RayTestsPerThreadLimit', state)
+    nativeSettings.addRangeFloat("/CORPORAT/RayTracing", "Ray Tracing Radius", "Determines the maximum distance rays will travel to calculate lighting, shadows, or reflections. (Default: 200)", 100, 400, 1, "%.0f", curSettings.fTracingRadius, defaultSettings.fTracingRadius, function(state)
+        curSettings.fTracingRadius = state
+		GameOptions.SetFloat('RayTracing', 'TracingRadius', state)
     end)
 
-    nativeSettings.addRangeInt("/CORPORATCROWDS/GameSenses", "Sensors To Update Limit", "More sensors update each frame → faster/more accurate perception, but higher CPU cost. (Default: 60,)", 30, 180, 1, curSettings.iSensorsToUpdateLimit, defaultSettings.iSensorsToUpdateLimit, function(state)
-        curSettings.iSensorsToUpdateLimit = state
-		GameOptions.SetInt('GameSenses', 'SensorsToUpdateLimit', state)
+    nativeSettings.addRangeFloat("/CORPORAT/RayTracing", "Ray Tracing Radius for Reflections", "This command specifically adjusts the ray-tracing distance used for reflections, which affects how far reflective surfaces 'see' the scene (Default: 2000)", 800, 4000, 1, "%.0f", curSettings.fTracingRadiusReflections, defaultSettings.fTracingRadiusReflections, function(state)
+        curSettings.fTracingRadiusReflections = state
+		GameOptions.SetFloat('RayTracing', 'TracingRadiusReflections', state)
     end)
 
-
---[Occlusion]
-    nativeSettings.addSwitch("/CORPORATCROWDS/Occlusion", "Force Full Test", "Every occlusion check runs completely, more accurate results (AI or rendering won’t miss hidden objects), but heavier on CPU/GPU. (Default: 'Off')*", curSettings.bForceFullTest, defaultSettings.bForceFullTest, function(state)
-		curSettings.bForceFullTest = state
-		GameOptions.SetBool('Occlusion', 'ForceFullTest', state)
-	 end)
-
-    nativeSettings.addRangeInt("/CORPORATCROWDS/Occlusion", "Test Phases Count", "More granular testing in a single frame, more accurate occlusion results, but higher CPU load. (Default: 3)", 1, 10, 1, curSettings.iTestPhasesCount, defaultSettings.iTestPhasesCount, function(state)
-		curSettings.iTestPhasesCount = state
-		GameOptions.SetInt('Occlusion', 'TestPhasesCount', state)
-     end)
-
---[Failsafe/ChoiceLookAt]
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/ChoiceLookAt", "Activation Delay", "Longer delay before AI reacts; can make behaviors appear more natural or less twitchy. (Default: 0.50)", 0.10, 2, .10, "%.1f", curSettings.factivationDelay, defaultSettings.factivationDelay, function(state)
-        curSettings.factivationDelay = state
-		GameOptions.SetFloat('Failsafe/ChoiceLookAt', 'activationDelay', state)
+    nativeSettings.addSwitch("/CORPORAT/RayTracing", "Enable Ambient Occlusion", "This command toggles ray-traced ambient occlusion (AO), which adds realistic shading in corners and crevices (Default: 'On')*", curSettings.bEnableAmbientOcclusion, defaultSettings.bEnableAmbientOcclusion, function(state)
+		curSettings.bEnableAmbientOcclusion = state
+		GameOptions.SetBool('RayTracing', 'EnableAmbientOcclusion', state)
 	end)
 
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/ChoiceLookAt", "Activation Tolerance", "The AI can tolerate larger deviations from ideal conditions before triggering. The look-at may activate less frequently or more smoothly. (Default: 0.99)", 0.10, 1, 0.01, "%.2f", curSettings.factivationTolerance, defaultSettings.factivationTolerance, function(state)
-        curSettings.factivationTolerance = state
-		GameOptions.SetFloat('Failsafe/ChoiceLookAt', 'activationTolerance', state)
+    nativeSettings.addSwitch("/CORPORAT/RayTracing", "Enable Transparent Reflection", "This command toggles ray-traced reflections on transparent surfaces (like glass or water) (Default: 'On')", curSettings.bEnableTransparentReflection, defaultSettings.bEnableTransparentReflection, function(state)
+		curSettings.bEnableTransparentReflection = state
+		GameOptions.SetBool('RayTracing', 'EnableTransparentReflection', state)
 	end)
 
-    nativeSettings.addRangeFloat("/CORPORATCROWDS/ChoiceLookAt", "Position Delta Reset", "This controls how much the target’s position can change before the AI resets its look-at calculation (Default: 0.50)", 0.10, 1.0, 0.1, "%.1f", curSettings.fpositionDeltaReset, defaultSettings.fpositionDeltaReset, function(state)
-        curSettings.fpositionDeltaReset = state
-		GameOptions.SetFloat('Failsafe/ChoiceLookAt', 'positionDeltaReset', state)
+    nativeSettings.addSwitch("/CORPORAT/RayTracing", "Enable Diffuse Illumination", "This command toggles ray-traced diffuse illumination, which adds realistic indirect lighting to a scene (Default: 'On')", curSettings.bEnableDiffuseIllumination, defaultSettings.bEnableDiffuseIllumination, function(state)
+		curSettings.bEnableDiffuseIllumination = state
+		GameOptions.SetBool('RayTracing', 'EnableDiffuseIllumination', state)
 	end)
 
---[AI]
-    nativeSettings.addSwitch("/CORPORATCROWDS/AI", "Code Tweak Actions Enabled", "This controls whether the AI applies “tweak actions” in its behavior logic — essentially small internal adjustments or experimental fixes in AI decision-making (Default: 'On')", curSettings.bCodeTweakActionsEnabled, defaultSettings.bCodeTweakActionsEnabled, function(state)
-		curSettings.bCodeTweakActionsEnabled = state
-		GameOptions.SetBool('AI', 'CodeTweakActionsEnabled', state)
+    nativeSettings.addSwitch("/CORPORAT/RayTracing", "Force Shadow LOD Bias Usage", "This command controls whether the engine enforces LOD bias for ray-traced shadows, affecting shadow detail at different distances (Default: 'On')*", curSettings.bForceShadowLODBiasUsage, defaultSettings.bForceShadowLODBiasUsage, function(state)
+		curSettings.bForceShadowLODBiasUsage = state
+		GameOptions.SetBool('RayTracing', 'ForceShadowLODBiasUsage', state)
+	end)
+
+    nativeSettings.addSwitch("/CORPORAT/RayTracing", "Enable Reflection", "This command toggles ray-traced reflections in general, affecting reflective surfaces like mirrors, water, and shiny objects (Default: 'On')", curSettings.bEnableReflection, defaultSettings.bEnableReflection, function(state)
+		curSettings.bEnableReflection = state
+		GameOptions.SetBool('RayTracing', 'EnableReflection', state)
+	end)
+
+    nativeSettings.addSwitch("/CORPORAT/RayTracing", "Enable Global Illumination", "This command toggles ray-traced global illumination (GI), which calculates realistic indirect lighting throughout the scene (Default: 'Off')", curSettings.bEnableGlobalIllumination, defaultSettings.bEnableGlobalIllumination, function(state)
+		curSettings.bEnableGlobalIllumination = state
+		GameOptions.SetBool('RayTracing', 'EnableGlobalIllumination', state)
+	end)
+
+	nativeSettings.addRangeInt("/CORPORAT/RayTracing", "Acceleration Structure Build Num Max", "This ensures frame time stability, but delays updates for some objects’ ray-traced representations. (Default: 64)*128", 64, 256, 32, curSettings.iAccelerationStructureBuildNumMax, defaultSettings.iAccelerationStructureBuildNumMax, function(state)
+		curSettings.iAccelerationStructureBuildNumMax = state
+		GameOptions.SetInt('RayTracing', 'AccelerationStructureBuildNumMax', state)
+	end)
+
+	nativeSettings.addRangeInt("/CORPORAT/RayTracing", "Scratch Buffer Size", "Scratch buffer is temporary GPU memory required to perform computations when building or refitting acceleration structures. (Default: 32)*64", 32, 128, 16, curSettings.iScratchBufferSizeMB, defaultSettings.iScratchBufferSizeMB, function(state)
+		curSettings.iScratchBufferSizeMB = state
+		GameOptions.SetInt('RayTracing', 'ScratchBufferSizeMB', state)
+	end)
+
+	nativeSettings.addRangeInt("/CORPORAT/RayTracing", "Geometry Update Buffer Size", "This buffer acts as a staging area for dynamic geometry that changes from frame to frame. (Default: 64)*128", 64, 256, 16, curSettings.iGeometryUpdateBufferSizeMB, defaultSettings.iGeometryUpdateBufferSizeMB, function(state)
+		curSettings.iGeometryUpdateBufferSizeMB = state
+		GameOptions.SetInt('RayTracing', 'GeometryUpdateBufferSizeMB', state)
+	end)
+
+	nativeSettings.addSwitch("/CORPORAT/RayTracing", "Enable NRD", "Controls whether NRD (NVIDIA Real-Time Denoiser) is enabled for ray-traced rendering. (Default: 'On')*", curSettings.bEnableNRD, defaultSettings.bEnableNRD, function(state)
+		curSettings.bEnableNRD = state
+		GameOptions.SetBool('RayTracing', 'EnableNRD', state)
+	end)
+
+	nativeSettings.addRangeInt("/CORPORAT/RayTracing", "Material Proxy Num Max", "That one controls how many ray-tracing material proxies the engine is allowed to keep alive at once. (Default: 32)*48", 32, 64, 16, curSettings.iMaterialProxyNumMax, defaultSettings.iMaterialProxyNumMax, function(state)
+		curSettings.iMaterialProxyNumMax = state
+		GameOptions.SetInt('RayTracing', 'MaterialProxyNumMax', state)
+	end)
+
+	nativeSettings.addRangeInt("/CORPORAT/RayTracing", "Material Proxy Update Num Max", "The maximum number of RT material proxies that can be created or updated in a single frame. (Default: 65536)*131072", 65536, 262144, 65536, curSettings.iMaterialProxyUpdateNumMax, defaultSettings.iMaterialProxyUpdateNumMax, function(state)
+		curSettings.iMaterialProxyUpdateNumMax = state
+		GameOptions.SetInt('RayTracing', 'MaterialProxyUpdateNumMax', state)
+	end)
+
+--RayTracing/Reflection
+    nativeSettings.addSwitch("/CORPORAT/Reflection", "Reflection Adaptive Sampling", "This command toggles adaptive sampling for ray-traced reflections, which helps optimize performance by varying the number of rays traced based on scene complexity (Default: 'On')*", curSettings.bReflectionAdaptiveSampling, defaultSettings.bReflectionAdaptiveSampling, function(state)
+		curSettings.bReflectionAdaptiveSampling = state
+		GameOptions.SetBool('RayTracing/Reflection', 'AdaptiveSampling', state)
+	end)
+
+--RayTracing/Diffuse
+    nativeSettings.addSwitch("/CORPORAT/Diffuse", "Diffuse Adaptive Sampling", "Dynamically adjusts ray counts per scene area to optimize performance while keeping reflections high quality (Default: 'On')*", curSettings.bDiffuseAdaptiveSampling, defaultSettings.bDiffuseAdaptiveSampling, function(state)
+		curSettings.bDiffuseAdaptiveSampling = state
+		GameOptions.SetBool('RayTracing/Reflection', 'AdaptiveSampling', state)
+	end)
+
+--Rendering/Shadows
+    nativeSettings.addSwitch("/CORPORAT/Shadows", "Enable Cascades Heuristic Force Refresh", "Forces the engine to refresh shadow cascades more aggressively based on movement or changes in the scene (Default: 'Off')*", curSettings.bCascadesHeuristicForceRefresh, defaultSettings.bCascadesHeuristicForceRefresh, function(state)
+		curSettings.bCascadesHeuristicForceRefresh = state
+		GameOptions.SetBool('Rendering/Shadows', 'CascadesHeuristicForceRefresh', state)
+	end)
+
+    nativeSettings.addSwitch("/CORPORAT/Shadows", "Force Distant Foliage Shadows", "'On' leaves, grass, and small vegetation are included in distant shadow calculations. (Default: 'Off')", curSettings.bDistantShadowsForceFoliageGeometry, defaultSettings.bCascadesHeuristicForceRefresh, function(state)
+		curSettings.bDistantShadowsForceFoliageGeometry = state
+		GameOptions.SetBool('Rendering/Shadows', 'DistantShadowsForceFoliageGeometry', state)
+	end)
+
+--Rendering
+    nativeSettings.addSwitch("/CORPORAT/Rendering", "Allow RayTraced Reference Rejitter", "Pass pre-denoise jtter information to the temporal upscaler. This workaround preserves detail when a PT denoiser removes jitter (Default: 'Off')", curSettings.bAllowRayTracedReferenceRejitter, defaultSettings.bAllowRayTracedReferenceRejitter, function(state)
+		curSettings.bAllowRayTracedReferenceRejitter = state
+		GameOptions.SetBool('Rendering', 'AllowRayTracedReferenceRejitter', state)
+	end)
+
+    nativeSettings.addSwitch("/CORPORAT/Rendering", "Allow RTXDI Rejitter", "Allowing rejitter means the engine is permitted to periodically reshuffle (re-jitter) the light sample sequence, improving temporal stability and reducing long-term bias. (Default: 'Off')", curSettings.bAllowRTXDIRejitter, defaultSettings.bAllowRTXDIRejitter, function(state)
+		curSettings.bAllowRTXDIRejitter = state
+		GameOptions.SetBool('Rendering', 'AllowRTXDIRejitter', state)
+	end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/Rendering", "Bloom Luminance Clamp Factor", "Luminance Clamp Factor is a multiplier that limits (clamps) how much luminance (brightness) gets pushed into the bloom pass. (Default: 0.07)", 0.0, 2.0, 0.01, "%.2f", curSettings.fBloomLuminanceClampFactor, defaultSettings.fBloomLuminanceClampFactor, function(state)
+        curSettings.fBloomLuminanceClampFactor = state
+		GameOptions.SetFloat('Rendering', 'BloomLuminanceClampFactor', state)
+    end)
+
+    nativeSettings.addSwitch("/CORPORAT/Rendering", "Distant Global Illumination Fix", "Usually corrects lighting artifacts in faraway city geometry when DistantGI is active (Default: 'On')", curSettings.bDistantGiFix, defaultSettings.bDistantGiFix, function(state)
+		curSettings.bDistantGiFix = state
+		GameOptions.SetBool('Rendering', 'DistantGiFix', state)
+	end)
+	 
+    nativeSettings.addSwitch("/CORPORAT/Rendering", "Garments Use Smoothing", "Controls whether cloth/garment simulation uses smoothing (stabilization) passes on character clothing (Default: 'On')", curSettings.bGarmentUseSmoothing, defaultSettings.bGarmentUseSmoothing, function(state)
+		curSettings.bGarmentUseSmoothing = state
+		GameOptions.SetBool('Rendering', 'GarmentUseSmoothing', state)
+	end)
+	 
+    nativeSettings.addSwitch("/CORPORAT/Rendering", "Use Experimental Volumetric Fog", "This controls whether the game uses the experimental volumetric fog renderer that CDPR left in the engine. (Default: 'On')", curSettings.bUseExperimentalVolFog, defaultSettings.bUseExperimentalVolFog, function(state)
+		curSettings.bUseExperimentalVolFog = state
+		GameOptions.SetBool('Rendering', 'UseExperimentalVolFog', state)
+	end)
+
+	nativeSettings.addRangeInt("/CORPORAT/Rendering", "Max G-Buffer Splits", "Opaque geometry can be split across multiple G-Buffer layers to correctly render overlapping surfaces, decals, and alpha-tested geometry without artifacts. (Default: 8)", 8, 32, 8, curSettings.iMaxGbufferSplits, defaultSettings.iMaxGbufferSplits, function(state)
+		curSettings.iMaxGbufferSplits = state
+		GameOptions.SetInt('Rendering', 'MaxGbufferSplits', state)
+	end)
+
+	nativeSettings.addRangeFloat("/CORPORAT/Rendering", "Volumetric Fog Volume Default Absorption", "Controls how much light gets removed as it travels through the fog volume. (Default: 1)", 0, 1, 0.01, "%.2f", curSettings.fVolumetricFogVolume_DefaultAbsorption, defaultSettings.fVolumetricFogVolume_DefaultAbsorption, function(state)
+		curSettings.fVolumetricFogVolume_DefaultAbsorption = state
+		GameOptions.SetInt('Rendering', 'VolumetricFogVolume_DefaultAbsorption', state)
+	end)
+
+--Developer/FeatureToggles
+    nativeSettings.addSwitch("/CORPORAT/FeatureToggles", "Enable RTXDI", "Enable RTXDI (Real-Time Direct Illumination) (PT Default: 'On')", curSettings.bRTXDI, defaultSettings.bRTXDI, function(state)
+		curSettings.bRTXDI = state
+		GameOptions.SetBool('Developer/FeatureToggles', 'RTXDI', state)
+	end)
+
+    nativeSettings.addSwitch("/CORPORAT/FeatureToggles", "Volumetric Fog", "Enable Volumetric Fog (Default: 'On')", curSettings.bVolumetricFog, defaultSettings.bVolumetricFog, function(state)
+		curSettings.bVolumetricFog = state
+		GameOptions.SetBool('Developer/FeatureToggles', 'VolumetricFog', state)
+	end)
+	
+    nativeSettings.addSwitch("/CORPORAT/FeatureToggles", "Enable Character Rim Enhancement", "Artificial lighting on on edges of characters clothes and skin and other world items (Default: 'On')*", curSettings.bCharacterRimEnhancement, defaultSettings.bCharacterRimEnhancement, function(state)
+		curSettings.bCharacterRimEnhancement = state
+		GameOptions.SetBool('Developer/FeatureToggles', 'CharacterRimEnhancement', state)
+	end)
+	
+    nativeSettings.addSwitch("/CORPORAT/FeatureToggles", "Enable Constrast Adaptive Sharpening", "Technique used to improve image sharpness by intelligently adjusting the amount of sharpening based on the local contrast of the image (Default: 'On')*", curSettings.bConstrastAdaptiveSharpening, defaultSettings.bConstrastAdaptiveSharpening, function(state)
+		curSettings.bConstrastAdaptiveSharpening = state
+		GameOptions.SetBool('Developer/FeatureToggles', 'ConstrastAdaptiveSharpening', state)
+	end)
+
+    nativeSettings.addSwitch("/CORPORAT/FeatureToggles", "Contact Shadows", "The goal of using Contact Shadows is to capture small details that regular shadow mapping algorithms fail to capture (Default: 'On')", curSettings.bContactShadows, defaultSettings.bContactShadows, function(state)
+		curSettings.bContactShadows = state
+		GameOptions.SetBool('Developer/FeatureToggles', 'ContactShadows', state)
+	end)
+
+    nativeSettings.addSwitch("/CORPORAT/FeatureToggles", "Screen Space Underwater", "Enable Screen Space Underwater (Default: 'On')", curSettings.bScreenSpaceUnderwater, defaultSettings.bScreenSpaceUnderwater, function(state)
+		curSettings.bScreenSpaceUnderwater = state
+		GameOptions.SetBool('Developer/FeatureToggles', 'ScreenSpaceUnderwater', state)
+	end)
+
+    nativeSettings.addSwitch("/CORPORAT/FeatureToggles", "Bloom", "Bloom simulates light bleeding beyond the edges of very bright objects, creating a glow. (Default: 'On')", curSettings.bBloom, defaultSettings.bBloom, function(state)
+		curSettings.bBloom = state
+		GameOptions.SetBool('Developer/FeatureToggles', 'Bloom', state)
+	end)
+
+    nativeSettings.addSwitch("/CORPORAT/FeatureToggles", "Screen Space Heat Haze", "Enable Heat Haze Effects (Default: 'On')", curSettings.bScreenSpaceHeatHaze, defaultSettings.bScreenSpaceHeatHaze, function(state)
+		curSettings.bScreenSpaceHeatHaze = state
+		GameOptions.SetBool('Developer/FeatureToggles', 'ScreenSpaceHeatHaze', state)
+	end)
+
+    nativeSettings.addSwitch("/CORPORAT/FeatureToggles", "Screen Space Reflections", "The regular reflections everyone sees in-game. Fast, approximate, and limited by what’s on-screen (objects not currently visible can’t be reflected). (Default: 'On')*", curSettings.bScreenSpaceReflection, defaultSettings.bScreenSpaceReflection, function(state)
+		curSettings.bScreenSpaceReflection = state
+		GameOptions.SetBool('Developer/FeatureToggles', 'ScreenSpaceReflection', state)
+	end)
+
+    nativeSettings.addSwitch("/CORPORAT/FeatureToggles", "Screen Space Planar Reflections", "The flag being toggled. This controls planar reflections rendered in screen space, a higher-fidelity reflection technique compared to SSR (Screen Space Reflections). It can provide more accurate reflections (especially for water and glossy flat surfaces), but it’s expensive performance-wise. (Default: 'On')*", curSettings.bScreenSpacePlanarReflection, defaultSettings.bScreenSpacePlanarReflection, function(state)
+		curSettings.bScreenSpacePlanarReflection = state
+		GameOptions.SetBool('Developer/FeatureToggles', 'ScreenSpacePlanarReflection', state)
+	end)
+
+    nativeSettings.addSwitch("/CORPORAT/FeatureToggles", "Enable Global Illumination (Raster)", "It controls a specific RTGI pass for far-distance scenery, e.g. lighting of large cityscapes or faraway terrain that isn’t covered by the regular local RTGI volumes. (Default: 'On')", curSettings.bDistantGI, defaultSettings.bDistantGI, function(state)
+		curSettings.bDistantGI = state
+		GameOptions.SetBool('Developer/FeatureToggles', 'DistantGI', state)
+	end)
+
+    nativeSettings.addSwitch("/CORPORAT/FeatureToggles", "Character Subsurface Scattering", "Subsurface scattering simulates light penetrating slightly into skin (or other translucent materials), scattering, and exiting elsewhere. (Default: 'On')", curSettings.bCharacterSubsurfaceScattering, defaultSettings.bCharacterSubsurfaceScattering, function(state)
+		curSettings.bCharacterSubsurfaceScattering = state
+		GameOptions.SetBool('Developer/FeatureToggles', 'CharacterSubsurfaceScattering', state)
+	end)
+
+    nativeSettings.addSwitch("/CORPORAT/FeatureToggles", "Character Subsurface Translucency", "While Subsurface Scattering handles general light diffusion within skin, Subsurface Translucency controls light transmission through thin parts of character materials. (Default: 'Off')", curSettings.bCharacterSubsurfaceTranslucency, defaultSettings.bCharacterSubsurfaceTranslucency, function(state)
+		curSettings.bCharacterSubsurfaceTranslucency = state
+		GameOptions.SetBool('Developer/FeatureToggles', 'CharacterSubsurfaceTranslucency', state)
+	end)
+
+--Audio
+    nativeSettings.addSwitch("/CORPORAT/Audio", "Enable Breathing System", "Enables or disables V's breathing Sound (Default: 'Off')", curSettings.bBreathingSystem, defaultSettings.bBreathingSystem, function(state)
+		curSettings.bBreathingSystem = state
+		GameOptions.SetBool('Editor/Audio/Features', 'BreathingSystem', state)
+		TweakDB:SetFlat('BaseStatusEffect.PlayerExhausted_inline2.effectors', {"BaseStatusEffect.PlayerExhausted_inline3", "BaseStatusEffect.PlayerExhausted_inline7", "BaseStatusEffect.BreathingHeavy_inline1"})
+	end)
+	
+--DLSS	
+	nativeSettings.addRangeInt("/CORPORAT/DLSS", "Number of DLSS Samples", "Determines how many temporal samples per frame DLSS uses for reconstruction. (Default: 16)", 16, 32, 16, curSettings.iDLSS_SampleNumber, defaultSettings.iDLSS_SampleNumber, function(state)
+		curSettings.iDLSS_SampleNumber = state
+		GameOptions.SetInt('DLSS', 'SampleNumber', state)
+	end)
+
+    nativeSettings.addSwitch("/CORPORAT/DLSS", "Enable Halton", "A rendering option that toggles the use of a Halton low-discrepancy sequence for sample generation instead of purely random or simpler jitter patterns. (Default: 'Off')*", curSettings.bEnableHalton, defaultSettings.bEnableHalton, function(state)
+		curSettings.bEnableHalton = state
+		GameOptions.SetBool('DLSS', 'EnableHalton', state)
+	end)
+
+--Editor/RTXDI
+	nativeSettings.addSwitch("/CORPORAT/RTXDI", "Enable Approximate Probability Density Functions", "Enabling this makes the renderer use an approximate PDF (Probability Density Functions) to choose which lights to sample (Default: 'Off')*", curSettings.bEnableApproximateTargetPDF, defaultSettings.bEnableApproximateTargetPDF, function(state)
+		curSettings.bEnableApproximateTargetPDF = state
+		GameOptions.SetBool('Editor/RTXDI', 'EnableApproximateTargetPDF', state)
+	end)
+
+	nativeSettings.addSwitch("/CORPORAT/RTXDI", "Enable Local Light Importance Sampling", "Importance sampling focuses computational effort on lights that contribute most to the scene, improving efficiency (Default: 'Off')", curSettings.bEnableLocalLightImportanceSampling, defaultSettings.bEnableLocalLightImportanceSampling, function(state)
+		curSettings.bEnableLocalLightImportanceSampling = state
+		GameOptions.SetBool('Editor/RTXDI', 'EnableLocalLightImportanceSampling', state)
+	end)
+
+	nativeSettings.addSwitch("/CORPORAT/RTXDI", "Enable Fallback Light", "When enabled, the renderer provides a fallback light source if the RTXDI calculations fail or are insufficient. (Default 'On')", curSettings.bEnableFallbackLight, defaultSettings.bEnableFallbackLight, function(state)
+		curSettings.bEnableFallbackLight = state
+		GameOptions.SetBool('Editor/RTXDI', 'EnableFallbackLight', state)
+	end)
+
+	nativeSettings.addSwitch("/CORPORAT/RTXDI", "Enable Separate Denoising", "Denoise Indirect/Direct lighting seperately, quality improvement and fixes foilage lighting (Default: 'On')", curSettings.bEnableSeparateDenoising, defaultSettings.bEnableSeparateDenoising, function(state)
+		curSettings.bEnableSeparateDenoising = state
+		GameOptions.SetBool('Editor/RTXDI', 'EnableSeparateDenoising', state)
+	end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/RTXDI", "Shadow Fade Fraction", "Affects the smoothness of shadow transitions for RTXDI indirect lighting.(Default 0.10)", 0.01, 0.2, 0.01, "%.2f", curSettings.fShadowFadeFraction, defaultSettings.fShadowFadeFraction, function(state)
+        curSettings.fShadowFadeFraction = state
+		GameOptions.SetFloat('Editor/RTXDI', 'ShadowFadeFraction', state)
+    end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/RTXDI", "Forced Shadow Light Source Radius", "Uses the physical size of a light source when calculating shadow softness. Larger lights create softer penumbras, while smaller lights create sharper shadows. (Default 0.10)*0.05", 0.01, 0.2, 0.01, "%.2f", curSettings.fForcedShadowLightSourceRadius, defaultSettings.fForcedShadowLightSourceRadius, function(state)
+        curSettings.fForcedShadowLightSourceRadius = state
+		GameOptions.SetFloat('Editor/RTXDI', 'ForcedShadowLightSourceRadius', state)
+    end)
+
+	nativeSettings.addSwitch("/CORPORAT/RTXDI", "Enable Gradients", "Gradients help smooth lighting transitions and reduce artifacts or noise, improving visual fidelity in RTXDI previews (Default: 'Off')*", curSettings.bEnableGradients, defaultSettings.bEnableGradients, function(state)
+		curSettings.bEnableGradients = state
+		GameOptions.SetBool('Editor/RTXDI', 'EnableGradients', state)
+	end)
+
+	nativeSettings.addSwitch("/CORPORAT/RTXDI", "Enable NRD Custom Denoiser", "NRD denoiser modification. Should be enabled with NRD. Reduces traversal noise at the with minor loss of edge detail (use sharpening) (Default: 'Off')", curSettings.bUseCustomDenoiser, defaultSettings.bUseCustomDenoiser, function(state)
+		curSettings.bUseCustomDenoiser = state
+		GameOptions.SetBool('Editor/RTXDI', 'UseCustomDenoiser', state)
+	end)
+
+	nativeSettings.addSwitch("/CORPORAT/RTXDI", "Enable RTX DI Denoising", "Helps reduce noise in indirect lighting generated by RTXDI rays. (Default: 'On')*", curSettings.bEnableRTXDIDenoising, defaultSettings.bEnableRTXDIDenoising, function(state)
+		curSettings.bEnableRTXDIDenoising = state
+		GameOptions.SetBool('Editor/RTXDI', 'EnableRTXDIDenoising', state)
+	end)
+
+	nativeSettings.addSwitch("/CORPORAT/RTXDI", "Initial Candidates in Temporal", "Controls whether initial light candidates for RTXDI sampling are reused temporally (across frames). (Default: 'Off')*", curSettings.bInitialCandidatesInTemporal, defaultSettings.bInitialCandidatesInTemporal, function(state)
+		curSettings.bInitialCandidatesInTemporal = state
+		GameOptions.SetBool('Editor/RTXDI', 'InitialCandidatesInTemporal', state)
+	end)
+
+	nativeSettings.addSwitch("/CORPORAT/RTXDI", "Enable Environment Lights", "This option tells RTXDI whether to include environment lights (sky, IBL/Skydome, reflection probes, etc.) in its direct illumination calculations. (Default: 'Off')", curSettings.bEnableEnvironmentLights, defaultSettings.bEnableEnvironmentLights, function(state)
+		curSettings.bEnableEnvironmentLights = state
+		GameOptions.SetBool('Editor/RTXDI', 'EnableEnvironmentLights', state)
+	end)
+
+    nativeSettings.addSwitch("/CORPORAT/RTXDI", "Force All Shadows", "Force All Shadows makes every light source ignore their shadow casting properties", curSettings.bForceAllShadows, defaultSettings.bForceAllShadows, function(state)
+        curSettings.bForceAllShadows = state
+		GameOptions.SetBool('Editor/RTXDI', 'ForceAllShadows', state)
+    end)
+
+    nativeSettings.addSelectorString("/CORPORAT/RTXDI", "Bias Correction Mode", "This controls how RTXDI handles bias correction in lighting calculations. Bias correction is a technique to reduce light leaking or shadow artifacts. (Default: Basic)", bias_list, curSettings.iRTXDI_BiasCorrectionMode, defaultSettings.iRTXDI_BiasCorrectionMode, function(state)
+        curSettings.iRTXDI_BiasCorrectionMode = tonumber(state)
+ 		GameOptions.SetInt('Editor/RTXDI', 'BiasCorrectionMode', (tonumber(state)-1))
+   end)
+
+    nativeSettings.addSelectorString("/CORPORAT/RTXDI", "Permutation Sampling Mode", "A permutation sampling mode typically decides how light samples are shuffled or stratified to reduce noise in ray tracing. (Default: Deterministic)", permutaion_list, curSettings.iRTXDI_PermutationSamplingMode, defaultSettings.iRTXDI_PermutationSamplingMode, function(state)
+        curSettings.iRTXDI_PermutationSamplingMode = tonumber(state)
+ 		GameOptions.SetInt('Editor/RTXDI', 'PermutationSamplingMode', (tonumber(state)-1))
+   end)
+	
+    nativeSettings.addRangeFloat("/CORPORAT/RTXDI", "Boiling Filter Strength", "RTXDI also relies on reservoir resampling over time, and suffers from the same “boiling” artifacts (rapid per-frame variance causing lights to shimmer or crawl). Typical range 0.3 - 0.6 above 0.60 can cause image to become blurry. (Default: 0.50)*0.25", 0.0, 1.0, 0.01, "%.2f", curSettings.fRTXDI_BoilingFilterStrength, defaultSettings.fRTXDI_BoilingFilterStrength, function(state)
+        curSettings.fRTXDI_BoilingFilterStrength = state
+		GameOptions.SetFloat('Editor/RTXDI', 'BoilingFilterStrength', state)
+    end)
+
+	nativeSettings.addRangeInt("/CORPORAT/RTXDI", "Max History Length", "History length refers to how many previous frames of sampled lighting information the system keeps and reuses. (Default: 20, Higher values can cause ghosting)*3", 0, 20, 1, curSettings.iRTXDI_MaxHistoryLength, defaultSettings.iRTXDI_MaxHistoryLength, function(state)
+		curSettings.iRTXDI_MaxHistoryLength = state
+		GameOptions.SetInt('Editor/RTXDI', 'MaxHistoryLength', state)
+    end)
+
+	nativeSettings.addRangeFloat("/CORPORAT/RTXDI", "Spatial Sampling Radius", "The spatial sampling radius determines how far RTXDI will search for those neighbors. (Default: 32)*24", 1, 32, 1, "%.0f", curSettings.fRTXDI_SpatialSamplingRadius, defaultSettings.fRTXDI_SpatialSamplingRadius, function(state)
+		curSettings.fRTXDI_SpatialSamplingRadius = state
+		GameOptions.SetFloat('Editor/RTXDI', 'SpatialSamplingRadius', state)
+    end)
+
+	nativeSettings.addRangeInt("/CORPORAT/RTXDI", "Spatial Num Disocclusion Boost Samples", "Sets how many extra neighbor samples RTXDI pulls in for those disoccluded pixels. (Default: 8)*12", 0, 24, 1, curSettings.iRTXDI_SpatialNumDisocclusionBoostSamples, defaultSettings.iRTXDI_SpatialNumDisocclusionBoostSamples, function(state)
+		curSettings.iRTXDI_SpatialNumDisocclusionBoostSamples = state
+		GameOptions.SetInt('Editor/RTXDI', 'SpatialNumDisocclusionBoostSamples', state)
+    end)
+
+	nativeSettings.addRangeInt("/CORPORAT/RTXDI", "Spatial Num Samples", "Sets the base number of neighbor samples RTXDI uses during spatial resampling. (Default: 1)*2", 0, 5, 1, curSettings.iRTXDI_SpatialNumSamples, defaultSettings.iRTXDI_SpatialNumSamples, function(state)
+		curSettings.iRTXDI_SpatialNumSamples = state
+		GameOptions.SetInt('Editor/RTXDI', 'SpatialNumSamples', state)
+    end)
+
+	nativeSettings.addRangeInt("/CORPORAT/RTXDI", "Num Initial Samples", "Sets how many new light samples RTXDI generates before any temporal or spatial reuse kicks in. (Default: 8)*16", 0, 24, 1, curSettings.iRTXDI_NumInitialSamples, defaultSettings.iRTXDI_NumInitialSamples, function(state)
+		curSettings.iRTXDI_NumInitialSamples = state
+		GameOptions.SetInt('Editor/RTXDI', 'NumInitialSamples', state)
+    end)
+
+	nativeSettings.addRangeInt("/CORPORAT/RTXDI", "Num Env Map Samples", "Controls how many environment map light samples RTXDI draws per pixel per frame. (Default: 8)", 0, 16, 1, curSettings.iRTXDI_NumEnvMapSamples, defaultSettings.iRTXDI_NumEnvMapSamples, function(state)
+		curSettings.iRTXDI_NumEnvMapSamples = state
+		GameOptions.SetInt('Editor/RTXDI', 'NumEnvMapSamples', state)
+    end)
+
+--RayTracing/Reference
+	nativeSettings.addSwitch("/CORPORAT/Reference", "Enable Probabilistic Sampling", "Determines whether the renderer uses stochastic/probabilistic sampling instead of fixed or uniform ray sampling. Probabilistic sampling can reduce the number of rays needed for convergence while maintaining statistical accuracy. (Default: 'Off')", curSettings.bEnableProbabilisticSampling, defaultSettings.bEnableProbabilisticSampling, function(state)
+		curSettings.bEnableProbabilisticSampling = state
+		GameOptions.SetBool('RayTracing/Reference', 'EnableProbabilisticSampling', state)
+	end)
+
+	nativeSettings.addSwitch("/CORPORAT/Reference", "Enable Ray-Traced Importance Sampling (RIS)", "Change how samples for RTGI or RT Reflections are chosen (potentially improving quality in dark or complex lighting). (Default: 'On')", curSettings.bEnableRIS, defaultSettings.bEnableRIS, function(state)
+		curSettings.bEnableRIS = state
+		GameOptions.SetBool('RayTracing/Reference', 'EnableRIS', state)
+	end)
+
+	nativeSettings.addSwitch("/CORPORAT/Reference", "Enable Fixed", "'Off' Uses adaptive sampling (may vary per pixel for efficiency), 'On' enable fixed ray counts (deterministic). (Default: 'On')*", curSettings.bEnableFixed, defaultSettings.bEnableFixed, function(state)
+		curSettings.bEnableFixed = state
+		GameOptions.SetBool('RayTracing/Reference', 'EnableFixed', state)
+	end)
+
+--Editor/PathTracing
+	nativeSettings.addSwitch("/CORPORAT/PathTracing", "Use Screen Space Data", "Determines whether screen-space information (like depth, normals, and material properties) is used to accelerate or refine path tracing. (Default 'Off')*", curSettings.bUseScreenSpaceData, defaultSettings.bUseScreenSpaceData, function(state)
+		curSettings.bUseScreenSpaceData = state
+		GameOptions.SetBool('Editor/PathTracing', 'UseScreenSpaceData', state)
+	end)
+
+	nativeSettings.addSwitch("/CORPORAT/PathTracing", "Use SSR Fall back", "This toggles whether Screen Space Reflections (SSR) are used as a fallback when path-traced reflections are unavailable. (Default 'On')", curSettings.bUseSSRFallback, defaultSettings.bUseSSRFallback, function(state)
+		curSettings.bUseSSRFallback = state
+		GameOptions.SetBool('Editor/PathTracing', 'UseSSRFallback', state)
+	end)
+
+--Editor/ReSTIRGI
+	nativeSettings.addSwitch("/CORPORAT/ReSTIRGI", "Enable ReSTIR GI", "Enable Reservoir-based Spatio-Temporal Importance Resampling Global Illunination, covers the bulk of indirect lighting paths when used with SHARC (Default 'On')", curSettings.bEnableReSTIRGI, defaultSettings.bEnableReSTIRGI, function(state)
+		curSettings.bEnableReSTIRGI = state
+		GameOptions.SetBool('Editor/ReSTIRGI', 'Enable', state)
+	end)
+ 
+	nativeSettings.addSwitch("/CORPORAT/ReSTIRGI", "Enable ReSTIR GI Fallback Sampling", "Ensures indirect lighting remains visible even when the algorithm cannot find good samples. (Default 'Off')*", curSettings.bEnableFallbackSampling, defaultSettings.bEnableFallbackSampling, function(state)
+		curSettings.bEnableFallbackSampling = state
+		GameOptions.SetBool('Editor/ReSTIRGI', 'EnableFallbackSampling', state)
+	end)
+
+	nativeSettings.addSwitch("/CORPORAT/ReSTIRGI", "Enable ReSTIR GI Temporal Reuse", "When enabled, ReSTIRGI reuses candidate samples from previous frames to improve temporal stability and reduce noise. (Default 'Off')*", curSettings.bUseTemporalRGS, defaultSettings.bUseTemporalRGS, function(state)
+		curSettings.bUseTemporalRGS = state
+		GameOptions.SetBool('Editor/ReSTIRGI', 'UseTemporalRGS', state)
+	end)
+
+	nativeSettings.addSwitch("/CORPORAT/ReSTIRGI", "Enable Boiling Filter", "Reduces the weight of oversampled reservoirs to reduce bias (Default 'Off')*", curSettings.bEnableBoilingFilter, defaultSettings.bEnableBoilingFilter, function(state)
+		curSettings.bEnableBoilingFilter = state
+		GameOptions.SetBool('Editor/ReSTIRGI', 'EnableBoilingFilter', state)
+	end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/ReSTIRGI", "Boiling Filter Strength", "When ray traced GI reuses samples across frames, sometimes the result “shimmers” or “boils” because the reservoirs change too abruptly. Above 0.50 can cause image to become blurry. (Default: 0.40)*0.20", 0.0, 1.0, 0.01, "%.2f", curSettings.fReSTIRGI_BoilingFilterStrength, defaultSettings.fReSTIRGI_BoilingFilterStrength, function(state)
+        curSettings.fReSTIRGI_BoilingFilterStrength = state
+		GameOptions.SetFloat('Editor/ReSTIRGI', 'BoilingFilterStrength', state)
+    end)
+
+	nativeSettings.addSwitch("/CORPORAT/ReSTIRGI", "Enable Fused", "When enabled, ReSTIRGI fuses multiple sampling stages (e.g., spatial + temporal resampling) into a single pass. (Default 'On')", curSettings.bEnableFused, defaultSettings.bEnableFused, function(state)
+		curSettings.bEnableFused = state
+		GameOptions.SetBool('Editor/ReSTIRGI', 'EnableFused', state)
+	end)
+
+	nativeSettings.addSwitch("/CORPORAT/ReSTIRGI", "Enable ReSTIR GI Spatial Reuse", "When enabled, ReSTIRGI reuses candidate samples from neighboring pixels (spatial resampling) to reduce noise and improve efficiency. (Default 'On')", curSettings.bUseSpatialRGS, defaultSettings.bUseSpatialRGS, function(state)
+		curSettings.bUseSpatialRGS = state
+		GameOptions.SetBool('Editor/ReSTIRGI', 'UseSpatialRGS', state)
+	end)
+
+    nativeSettings.addSelectorString("/CORPORAT/ReSTIRGI", "Bias Correction Mode", "Controls how bias correction is handled for ReSTIR GI’s resampling. Bias correction helps reduce over-bright lighting, fireflies, or light leaking artifacts caused by the resampling step. (Default: None)", bias_list, curSettings.iEditor_ReSTRIGI_BiasCorrectionMode, defaultSettings.iEditor_ReSTRIGI_BiasCorrectionMode, function(state)
+        curSettings.iEditor_ReSTRIGI_BiasCorrectionMode = tonumber(state)
+ 		GameOptions.SetInt('Editor/ReSTIRGI', 'BiasCorrectionMode', (tonumber(state)-1))
+   end)
+
+    nativeSettings.addSelectorString("/CORPORAT/ReSTIRGI", "Permutation Sampling Mode", "Both RTXDI and ReSTIR GI use reservoir sampling with spatial + temporal reuse. To get good convergence without visible noise, they rely on permutation strategies (scrambling random numbers so you don’t get structured noise or banding). (Default: Deterministic)", permutaion_list, curSettings.iReSTIRGI_PermutationSamplingMode, defaultSettings.iReSTIRGI_PermutationSamplingMode, function(state)
+        curSettings.iReSTIRGI_PermutationSamplingMode = tonumber(state)
+ 		GameOptions.SetInt('Editor/ReSTIRGI', 'PermutationSamplingMode', (tonumber(state)-1))
+   end)
+
+	nativeSettings.addRangeInt("/CORPORAT/ReSTIRGI", "Max History Length", "Defines how many previous frames of global illumination samples can be reused. (Default: 8)", 0, 8, 1, curSettings.iReSTIRGI_MaxHistoryLength, defaultSettings.iReSTIRGI_MaxHistoryLength, function(state)
+        curSettings.iReSTIRGI_MaxHistoryLength = state
+		GameOptions.SetInt('Editor/ReSTIRGI', 'MaxHistoryLength', state)
+    end)
+
+	nativeSettings.addRangeInt("/CORPORAT/ReSTIRGI", "Max Reservoir Age", "The maximum number of frames an individual reservoir is allowed to live before being discarded/refreshed. (Default: 32)*48", 0, 48, 1, curSettings.iReSTIRGI_MaxReservoirAge, defaultSettings.iReSTIRGI_MaxReservoirAge, function(state)
+        curSettings.iReSTIRGI_MaxReservoirAge = state
+		GameOptions.SetInt('Editor/ReSTIRGI', 'MaxReservoirAge', state)
+    end)
+
+	nativeSettings.addRangeFloat("/CORPORAT/ReSTIRGI", "Spatial Sampling Radius", "The spatial sampling radius determines how far RTXDI will search for those neighbors. (Default: 32)", 1, 32, 1, "%.0f", curSettings.fReSTIRGI_SpatialSamplingRadius, defaultSettings.fReSTIRGI_SpatialSamplingRadius, function(state)
+		curSettings.fReSTIRGI_SpatialSamplingRadius = state
+		GameOptions.SetFloat('Editor/ReSTIRGI', 'SpatialSamplingRadius', state)
+    end)
+
+	nativeSettings.addRangeInt("/CORPORAT/ReSTIRGI", "Spatial Num Disocclusion Boost Samples", "How many extra neighbor samples are pulled on top of the normal SpatialNumSamples when filling in disoccluded pixels. (Default: 2)*5", 0, 5, 1, curSettings.iReSTIRGI_SpatialNumDisocclusionBoostSamples, defaultSettings.iReSTIRGI_SpatialNumDisocclusionBoostSamples, function(state)
+        curSettings.iReSTIRGI_SpatialNumDisocclusionBoostSamples = state
+		GameOptions.SetInt('Editor/ReSTIRGI', 'SpatialNumDisocclusionBoostSamples', state)
+    end)
+
+	nativeSettings.addRangeInt("/CORPORAT/ReSTIRGI", "Spatial Num Samples", "How many nearby pixels to compare in order to improve the GI reservoir for the pixel. (Default: 2)*3", 0, 5, 1, curSettings.iReSTIRGI_SpatialNumSamples, defaultSettings.iReSTIRGI_SpatialNumSamples, function(state)
+        curSettings.iReSTIRGI_SpatialNumSamples = state
+		GameOptions.SetInt('Editor/ReSTIRGI', 'SpatialNumSamples', state)
+    end)
+
+	nativeSettings.addRangeInt("/CORPORAT/ReSTIRGI", "Target History Length","The number of past frames that ReSTIRGI aims to use for temporal reuse. (Default: 8)*4", 0, 16, 1, curSettings.iReSTIRGI_TargetHistoryLength, defaultSettings.iReSTIRGI_TargetHistoryLength, function(state)
+        curSettings.iReSTIRGI_TargetHistoryLength = state
+		GameOptions.SetInt('Editor/ReSTIRGI', 'TargetHistoryLength', state)
+    end)
+
+
+--Editor/ReGIR
+	nativeSettings.addSwitch("/CORPORAT/ReGIR", "Enable ReGIR GI", "Controls whether ReGIR (Resampled Global Illumination Radiance) is active (Default: 'Off')*", curSettings.bReGIREnable, defaultSettings.bReGIREnable, function(state)
+		curSettings.bReGIREnable = state
+		GameOptions.SetBool('Editor/ReGIR', 'Enable', state)
+    end)
+
+	nativeSettings.addSwitch("/CORPORAT/ReGIR", "Enable ReGIR DI (requires GI)", "Controls whether ReGIR is applied for Direct Illumination in addition to Indirect Illumination. (Default: 'Off')", curSettings.bUseForDI, defaultSettings.bUseForDI, function(state)
+        curSettings.bUseForDI = state
+		GameOptions.SetBool('Editor/ReGIR', 'UseForDI', state)
+    end)
+
+   nativeSettings.addRangeInt("/CORPORAT/ReGIR", "ReGIR Light Slots", "How many local light slots. Below this will cause missing lights or light switching in some scenes (Default: 128)", 128, 256, 64, curSettings.iLightSlotsCount, defaultSettings.iLightSlotsCount, function(state)
+        curSettings.iLightSlotsCount = state
+		GameOptions.SetInt('Editor/ReGIR', 'LightSlotsCount', state)
+    end)
+
+    nativeSettings.addRangeInt("/CORPORAT/ReGIR", "ReGIR Shading Candidates", "This command sets the number of shading candidates for ReGIR sampling in the editor (Only builds shaders correctly on Default: 4)*16", 4, 24, 4, curSettings.iShadingCandidatesCount, defaultSettings.iShadingCandidatesCount, function(state)
+        curSettings.iShadingCandidatesCount = state
+		GameOptions.SetInt('Editor/ReGIR', 'ShadingCandidatesCount', state)
+    end)
+
+    nativeSettings.addRangeInt("/CORPORAT/ReGIR", "ReGIR Build Candidates", "Determines how many initial candidate positions are considered when constructing the ReGIR structure. (Default: 8)", 4, 8, 4, curSettings.iBuildCandidatesCount, defaultSettings.iBuildCandidatesCount, function(state)
+        curSettings.iBuildCandidatesCount = state
+		GameOptions.SetInt('Editor/ReGIR', 'BuildCandidatesCount', state)
+    end)
+
+--RayTracing/LocalLight
+    nativeSettings.addRangeInt("/CORPORAT/LocalLight", "Local Lights Batch Size", "Defines how many local lights are processed together in a single batch. (Default: 64)*128", 64, 256, 64, curSettings.iLocalLight_BatchSize, defaultSettings.iLocalLight_BatchSize, function(state)
+        curSettings.iLocalLight_BatchSize = state
+		GameOptions.SetInt('RayTracing/LocalLight', 'BatchSize', state)
+    end)
+
+    nativeSettings.addRangeInt("/CORPORAT/LocalLight", "Capacity", "Sets the maximum number of local light sources that can be included in ray tracing passes. (Default: 128)*512", 64, 512, 64, curSettings.iLocalLight_Capacity, defaultSettings.iLocalLight_Capacity, function(state)
+        curSettings.iLocalLight_Capacity = state
+		GameOptions.SetInt('RayTracing/LocalLight', 'Capacity', state)
+    end)
+
+    nativeSettings.addRangeInt("/CORPORAT/LocalLight", "Grid Size", "Controls the size of the spatial grid used to organize/cull local lights before they are sampled. (Default: 16)", 16, 64, 16, curSettings.iLocalLight_GridSize, defaultSettings.iLocalLight_GridSize, function(state)
+        curSettings.iLocalLight_GridSize = state
+		GameOptions.SetInt('RayTracing/LocalLight', 'GridSize', state)
+    end)
+
+--[RayTracing/BlasCache]
+    nativeSettings.addRangeInt("/CORPORAT/BlasCache", "Budget", "The BLAS (Bottom-Level Acceleration Structure) Cache Budget defines how much memory (VRAM) the game reserves for storing these acceleration structures. (Default: 900)", 900, 1800, 1, curSettings.iBlasCache_Budget_display, defaultSettings.iBlasCache_Budget_display, function(state)
+        curSettings.iBlasCache_Budget_display = (state)
+        curSettings.iBlasCache_Budget = ((state*1024)*1024)
+		GameOptions.SetInt('RayTracing/BlasCache', 'Budget', ((state*1024)*1024))
+    end)
+
+    nativeSettings.addRangeInt("/CORPORAT/BlasCache", "Reserve", "The specific parameter being set; controls how much VRAM is reserved for the BLAS cache, even if it’s not currently used. (Default: 150)", 150, 300, 1, curSettings.iBlasCache_Budget_Reserve_display, defaultSettings.iBlasCache_Budget_Reserve_display, function(state)
+        curSettings.iBlasCache_Budget_Reserve_display = (state)
+        curSettings.iBlasCache_Budget_Reserve = ((state*1024)*1024)
+		GameOptions.SetInt('RayTracing/BlasCache', 'Reserve', ((state*1024)*1024))
+    end)
+
+	nativeSettings.addSwitch("/CORPORAT/ReBLUR", "Reference Accumulation", "It makes NRD accumulate ideal lighting data frame-by-frame, ignoring temporal reprojection and noise thresholds — to produce a stable 'reference' image for comparison or validation. (Default: 'Off')", curSettings.bReBLUR_ReferenceAccumulation, defaultSettings.bReBLUR_ReferenceAccumulation, function(state)
+		curSettings.bReBLUR_ReferenceAccumulation = state
+		GameOptions.SetBool('Editor/Denoising/ReBLUR/Direct', 'ReferenceAccumulation', state)
+    end)
+
+--VariableRateShading
+	nativeSettings.addSwitch("/CORPORAT/VRS", "Enable", "Variable Rate Shading is a DirectX 12 feature that allows the GPU to vary the shading rate per region of the screen instead of shading every pixel individually. (Default: 'On')", curSettings.bVRS_Enable, defaultSettings.bVRS_Enable, function(state)
+		curSettings.bVRS_Enable = state
+		GameOptions.SetBool('Rendering/VariableRateShading', 'Enable', state)
+    end)
+
+	nativeSettings.addRangeFloat("/CORPORAT/VRS", "Variance Cutoff", "This setting defines how much visual variance (color/luminance/motion change) the VRS system tolerates before increasing the shading rate. (Default: 0.025)", 0.001, 1.0, 0.001, "%.3f", curSettings.fVRS_VarianceCutoff, defaultSettings.fVRS_VarianceCutoff, function(state)
+		curSettings.fVRS_VarianceCutoff = state
+		GameOptions.SetFloat('Rendering/VariableRateShading', 'VarianceCutoff', state)
+    end)
+
+	nativeSettings.addRangeFloat("/CORPORAT/VRS", "Motion Factor", "The Motion Factor defines how much on-screen movement (player movement, object animation, camera panning) influences the shading rate reduction. (Default: 0.75)", 0.0, 1.0, .01, "%.2f", curSettings.fVRS_MotionFactor, defaultSettings.fVRS_MotionFactor, function(state)
+		curSettings.fVRS_MotionFactor = state
+		GameOptions.SetFloat('Rendering/VariableRateShading', 'MotionFactor', state)
+    end)
+
+	nativeSettings.addRangeFloat("/CORPORAT/VRS", "Screen Edge Factor", "The ScreenEdgeFactor tells the VRS system how aggressively it should lower shading rates near the borders of the frame. (Default: 1.0)", 0, 2, .1, "%.1f", curSettings.fVRS_ScreenEdgeFactor, defaultSettings.fVRS_ScreenEdgeFactor, function(state)
+		curSettings.fVRS_ScreenEdgeFactor = state
+		GameOptions.SetFloat('Rendering/VariableRateShading', 'ScreenEdgeFactor', state)
+    end)
+
+--Editor/Characters/Hair
+	nativeSettings.addSwitch("/CORPORAT/Hair", "Hair Reference Implementation", "Determines whether the editor uses a reference hair shading/rendering method rather than the optimized runtime implementation. (Default: 'Off')*", curSettings.bUseReferenceImplementation, defaultSettings.bUseReferenceImplementation, function(state)
+		curSettings.bUseReferenceImplementation = state
+		GameOptions.SetBool('Editor/Characters/Hair', 'UseReferenceImplementation', state)
 	 end)
 
-    nativeSettings.addSwitch("/CORPORATCROWDS/AI", "Enable Low FPS Detection", "The AI detects low FPS situations and reduces computation or simplifies logic to maintain performance (e.g., skipping some AI updates, pathfinding checks, or perception calculations). (Default: 'On')", curSettings.bEnableLowFPSDetection, defaultSettings.bEnableLowFPSDetection, function(state)
-		curSettings.bEnableLowFPSDetection = state
-		GameOptions.SetBool('AI', 'EnableLowFPSDetection', state)
+    nativeSettings.addRangeFloat("/CORPORAT/Hair", "Hair Albedo Multiplier", "Multiplies the base color (albedo) of the hair material. Higher values (>1.0) = Hair appears brighter and more saturated. Lower values (<1.0) = Hair appears darker or muted. (Default: 1.0)", 0.01, 2.0, 0.01, "%.2f", curSettings.fAlbedoMultiplier, defaultSettings.fAlbedoMultiplier, function(state)
+        curSettings.fAlbedoMultiplier = state
+		GameOptions.SetFloat('Editor/Characters/Hair', 'AlbedoMultiplier', state)
+    end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/Hair", "Hair Roughness Factor", "Controls the micro-surface roughness of hair strands. Affects how specular highlights spread: Higher values = rougher hair, broader, softer highlights. Lower values = smoother hair, sharper, tighter highlights. (Default: 1.0)*3.0", 0.1, 3.0, 0.1, "%.2f", curSettings.fRoughnessFactor, defaultSettings.fRoughnessFactor, function(state)
+        curSettings.fRoughnessFactor = state
+		GameOptions.SetFloat('Editor/Characters/Hair', 'RoughnessFactor', state)
+    end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/Hair", "Hair Additional Area Roughness", "Higher values = Hair highlights are softer and more diffuse. (Default: 0.10)*0.3", 0.01, 1.0, 0.01, "%.2f", curSettings.fAdditionalAreaRoughness, defaultSettings.fAdditionalAreaRoughness, function(state)
+        curSettings.fAdditionalAreaRoughness = state
+		GameOptions.SetFloat('Editor/Characters/Hair', 'AdditionalAreaRoughness', state)
+    end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/Hair", "Hair Specular Random Min" ,"Defines the minimum variation in specular highlights across hair strands. Works together with SpecularRandom_Max to control the range of randomness. (Default: -0.2)", -1.0, 0.0, 0.01, "%.2f", curSettings.fSpecularRandom_Min, defaultSettings.fSpecularRandom_Min, function(state)
+        curSettings.fSpecularRandom_Min = state
+		GameOptions.SetFloat('Editor/Characters/Hair', 'SpecularRandom_Min', state)
+    end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/Hair", "Hair Specular Random Max", "Defines the maximum variation in specular highlights across hair strands. Introduces subtle randomness to prevent hair from looking overly uniform or artificial. (Default: 0.2)", 0.0, 1.0, 0.01, "%.2f", curSettings.fSpecularRandom_Max, defaultSettings.fSpecularRandom_Max, function(state)
+        curSettings.fSpecularRandom_Max = state
+		GameOptions.SetFloat('Editor/Characters/Hair', 'SpecularRandom_Max', state)
+    end)
+	
+	nativeSettings.addSwitch("/CORPORAT/Hair", "Use Global Contact Shadows On Hair", "Use Global Contact Shadows On Hair (Default: 'On')", curSettings.bUseGlobalContactShadowsOnHair, defaultSettings.bUseGlobalContactShadowsOnHair, function(state)
+		curSettings.bUseGlobalContactShadowsOnHair = state
+		GameOptions.SetBool('Editor/Characters/Hair', 'UseGlobalContactShadowsOnHair', state)
+	end)
+
+	nativeSettings.addRangeFloat("/CORPORAT/Hair", "Contact Shadow Clamp", "Limits how dark or strong contact shadows can get (Default: 0.35)", 0.01, 1.0, 0.01, "%.2f", curSettings.fContactShadowClamp, defaultSettings.fContactShadowClamp, function(state)
+		curSettings.fContactShadowClamp = state
+		GameOptions.SetFloat('Editor/Characters/Hair', 'ContactShadowClamp', state)
+	end)
+
+--Editor/Characters/Hair/Specular
+    nativeSettings.addRangeFloat("/CORPORAT/HairSpecular", "Hair Specular Wrap" ,"Higher values result in specular reflection spreading more around the hair surface, creating softer, more diffuse highlights.(Default: 0.3)*0.1", 0.0, 1.0, 0.01, "%.2f", curSettings.fECHS_Wrap, defaultSettings.fECHS_Wrap, function(state)
+        curSettings.fECHS_Wrap = state
+		GameOptions.SetFloat('Editor/Characters/Hair/Specular', 'Wrap', state)
+    end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/HairSpecular", "Hair Specular Mask Intensity" ,"Higher values produce brighter, more pronounced specular highlights (Default: 1.0)", 0.0, 1.0, 0.01, "%.2f", curSettings.fECHS_Mask_Intensity, defaultSettings.fECHS_Mask_Intensity, function(state)
+        curSettings.fECHS_Mask_Intensity = state
+		GameOptions.SetFloat('Editor/Characters/Hair/Specular', 'Mask_Intensity', state)
+    end)
+
+--[Editor/Characters/Hair/MultiScatter]
+    nativeSettings.addRangeFloat("/CORPORAT/HairMultiScatter", "Hair MultiScatter Wrap" ,"Multi-scattering simulates how light bounces between hair strands, producing more realistic highlights. (Default: 0.3)", 0.0, 1.0, 0.01, "%.2f", curSettings.fECHM_Wrap, defaultSettings.fECHM_Wrap, function(state)
+        curSettings.fECHM_Wrap = state
+		GameOptions.SetFloat('Editor/Characters/Hair/MultiScatter', 'Wrap', state)
+    end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/HairMultiScatter", "Hair MultiScatter Mask Intensity" ,"Hair MultiScatter Mask Intensity (Default: 1.0)", 0.0, 1.0, 0.01, "%.2f", curSettings.fECHM_Mask_Intensity, defaultSettings.fECHM_Mask_Intensity, function(state)
+        curSettings.fECHM_Mask_Intensity = state
+		GameOptions.SetFloat('Editor/Characters/Hair/MultiScatter', 'Mask_Intensity', state)
+    end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/HairMultiScatter", "Hair MultiScatter Diffuse Factor" ,"Diffuse Scatter Factor (Reflect in different directions) (Default: 0.0)", 0.0, 1.0, 0.01, "%.2f", curSettings.fECHM_DiffuseScatterFactor, defaultSettings.fECHM_DiffuseScatterFactor, function(state)
+        curSettings.fECHM_DiffuseScatterFactor = state
+		GameOptions.SetFloat('Editor/Characters/Hair/MultiScatter', 'DiffuseScatterFactor', state)
+    end)
+
+--[Editor/Characters/Hair/EnvProbe]
+	nativeSettings.addRangeFloat("/CORPORAT/HairEnvProbe", "Hair Environment Probe R" ,"Hair Environment Probe R (Default: 0.3)*0.33", 0.0, 1.0, 0.01, "%.2f", curSettings.fECHE_R, defaultSettings.fECHE_R, function(state)
+		curSettings.fECHE_R = state
+		GameOptions.SetFloat('Editor/Characters/Hair/EnvProbe', 'R', state)
+    end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/HairEnvProbe", "Hair Environment Probe TT", "Hair Environment Probe TT (Default: 0.005)", 0.0, 0.10, 0.001, "%.3f", curSettings.fECHE_TT, defaultSettings.fECHE_TT, function(state)
+        curSettings.fECHE_TT = state
+		GameOptions.SetFloat('Editor/Characters/Hair/EnvProbe', 'TT', state)
+    end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/HairEnvProbe", "Hair Environment Probe TRT" ,"Hair Environment Probe TRT (Default: 0.8))", -1.0, 1.0, 0.01, "%.2f", curSettings.fECHE_TRT, defaultSettings.fECHE_TRT, function(state)
+        curSettings.fECHE_TRT = state
+		GameOptions.SetFloat('Editor/Characters/Hair/EnvProbe', 'TRT', state)
+    end)
+
+   nativeSettings.addRangeFloat("/CORPORAT/HairEnvProbe", "Hair Environment Probe Multi Scatter" ,"Hair Environment Probe Multi Scatter (Default: 0.47)*0.45", 0.0, 1.0, 0.01, "%.2f", curSettings.fECHE_MultiScatter, defaultSettings.fECHE_MultiScatter, function(state)
+        curSettings.fECHE_MultiScatter = state
+		GameOptions.SetFloat('Editor/Characters/Hair/EnvProbe', 'MultiScatter', state)
+    end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/HairEnvProbe", "Hair Environment Probe Scatter Depth" ,"Hair Environment Probe Scatter Depth (Default: 1.3)", 0.0, 2.0, 0.01, "%.2f", curSettings.fECHE_ScatterDepth, defaultSettings.fECHE_ScatterDepth, function(state)
+        curSettings.fECHE_ScatterDepth = state
+		GameOptions.SetFloat('Editor/Characters/Hair/EnvProbe', 'ScatterDepth', state)
+    end)
+
+--[Editor/Characters/Hair/LocalLight]
+	nativeSettings.addRangeFloat("/CORPORAT/HairLocalLight", "Hair Local Light R" ,"Hair Environment Probe R (Default: 0.35)*0.33", 0.0, 1.0, 0.01, "%.2f", curSettings.fECHL_R, defaultSettings.fECHL_R, function(state)
+        curSettings.fECHL_R = state
+		GameOptions.SetFloat('Editor/Characters/Hair/LocalLight', 'R', state)
+    end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/HairLocalLight", "Hair Local Light TT" ,"Hair Environment Probe TT (Default: 0.005)", 0.0, 0.10, 0.001, "%.3f", curSettings.fECHL_TT, defaultSettings.fECHL_TT, function(state)
+        curSettings.fECHL_TT = state
+		GameOptions.SetFloat('Editor/Characters/Hair/LocalLight', 'TT', state)
+    end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/HairLocalLight", "Hair Local Light TRT" ,"Hair Environment Probe TRT (Default: 0.8)*0.33", 0.0, 1.0, 0.01, "%.2f", curSettings.fECHL_TRT, defaultSettings.fECHL_TRT, function(state)
+        curSettings.fECHL_TRT = state
+		GameOptions.SetFloat('Editor/Characters/Hair/LocalLight', 'TRT', state)
+    end)
+
+	nativeSettings.addRangeFloat("/CORPORAT/HairLocalLight", "Hair Local Light Multi Scatter" ,"Multi Scatter (Default: 0.47)*0.45", -1.0, 1.0, 0.01, "%.2f", curSettings.fECHL_MultiScatter, defaultSettings.fECHL_MultiScatter, function(state)
+        curSettings.fECHL_MultiScatter = state
+		GameOptions.SetFloat('Editor/Characters/Hair/LocalLight', 'MultiScatter', state)
+    end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/HairLocalLight", "Hair Local Light Scatter Depth" ,"Hair Local Light Scatter Depth (Default: 0.8)", 0.0, 2.0, 0.01, "%.2f", curSettings.fECHL_ScatterDepth, defaultSettings.fECHL_ScatterDepth, function(state)
+        curSettings.fECHL_ScatterDepth = state
+		GameOptions.SetFloat('Editor/Characters/Hair/LocalLight', 'ScatterDepth', state)
+    end)
+
+--[Editor/Characters/Hair/GlobalLight]
+    nativeSettings.addRangeFloat("/CORPORAT/HairGlobalLight", "Hair Global Light R" ,"Hair Local Light R (Default: 0.3)*0.35", -1.0, 1.0, 0.01, "%.2f", curSettings.fECHG_R, defaultSettings.fECHG_R, function(state)
+        curSettings.fECHG_R = state
+		GameOptions.SetFloat('Editor/Characters/Hair/GlobalLight', 'R', state)
+    end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/HairGlobalLight", "Hair Global Light TT" ,"Hair Local Light TT (Default: 0.005)", 0.0, 0.10, 0.001, "%.3f", curSettings.fECHG_TT, defaultSettings.fECHG_TT, function(state)        
+		curSettings.fECHG_TT = state
+		GameOptions.SetFloat('Editor/Characters/Hair/GlobalLight', 'TT', state)
+    end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/HairGlobalLight", "Hair Global Light TRT" ,"Hair Local Light TRT (Default: 0.8)", -1.0, 1.0, 0.01, "%.2f", curSettings.fECHG_TRT, defaultSettings.fECHG_TRT, function(state)
+        curSettings.fECHG_TRT = state
+		GameOptions.SetFloat('Editor/Characters/Hair/GlobalLight', 'TRT', state)
+    end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/HairGlobalLight", "Hair Global Light Multi Scatter" ,"Hair Local Light Multi Scatter (Default: 0.47)*0.45", -1.0, 1.0, 0.01, "%.2f", curSettings.fECHG_MultiScatter, defaultSettings.fECHG_MultiScatter, function(state)
+        curSettings.fECHG_MultiScatter = state
+		GameOptions.SetFloat('Editor/Characters/Hair/GlobalLight', 'MultiScatter', state)
+    end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/HairGlobalLight", "Hair Global Light Scatter Depth" ,"Hair Local Light Scatter Depth (Default: 1.25)", 0.0, 5.0, 0.01, "%.2f", curSettings.fECHG_ScatterDepth, defaultSettings.fECHG_ScatterDepth, function(state)
+        curSettings.fECHG_ScatterDepth = state
+		GameOptions.SetFloat('Editor/Characters/Hair/GlobalLight', 'ScatterDepth', state)
+    end)
+
+--[Editor/Characters/Hair/AlphaShifts]
+    nativeSettings.addRangeFloat("/CORPORAT/HairAlphaShifts", "Hair Alpha Shifts R" ,"Hair Local Light R (Default: -0.083)*-0.083", -1.0, 1.0, 0.001, "%.3f", curSettings.fECHA_R, defaultSettings.fECHA_R, function(state)
+        curSettings.fECHA_R = state
+		GameOptions.SetFloat('Editor/Characters/Hair/AlphaShifts', 'R', state)
+    end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/HairAlphaShifts", "Hair Alpha Shifts TT" ,"Hair Local Light TT (Default: 1.0)", -1.0, 1.0, 0.01, "%.2f", curSettings.fECHA_TT, defaultSettings.fECHA_TT, function(state)
+        curSettings.fECHA_TT = state
+		GameOptions.SetFloat('Editor/Characters/Hair/AlphaShifts', 'TT', state)
+    end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/HairAlphaShifts", "Hair Alpha Shifts TRT" ,"Hair Alpha Shifts TRT (Default: -0.5)*-0.065", -1.0, 0.0, 0.001, "%.3f", curSettings.fECHA_TRT, defaultSettings.fECHA_TRT, function(state)
+        curSettings.fECHA_TRT = state
+		GameOptions.SetFloat('Editor/Characters/Hair/AlphaShifts', 'TRT', state)
+    end)
+
+--[Editor/Characters/Hair/HACKS]
+    nativeSettings.addSwitch("/CORPORAT/HairHacks", "Enable Modified Local Light Intensity on hair", "Enables or disables Modified LocalLight Intensity hack on hair (Default: 'On')*", curSettings.bECHH_AAAA_HACK_hairModifiedLocalLightIntensity, defaultSettings.bECHH_AAAA_HACK_hairModifiedLocalLightIntensity, function(state)
+		curSettings.bECHH_AAAA_HACK_hairModifiedLocalLightIntensity = state
+		GameOptions.SetBool('Editor/Characters/Hair/HACKS', 'AAAA_HACK_hairModifiedLocalLightIntensity', state)
+	end)
+
+--[Editor/Characters/Hair/TRT_Params]
+    nativeSettings.addRangeFloat("/CORPORAT/TRT_Params", "EXP_SCALE" ,"EXP_SCALE (Default: 1.0)*0.0", 0, 3.0, 0.1, "%.1f", curSettings.fTRT_Params_EXP_SCALE, defaultSettings.fTRT_Params_EXP_SCALE, function(state)
+        curSettings.fTRT_Params_EXP_SCALE = state
+		GameOptions.SetFloat('Editor/Characters/Hair/TRT_Params', 'EXP_SCALE', state)
+    end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/TRT_Params", "EXP_BIAS" ,"EXP_BIAS (Default: 1.5)*1.0", 0, 2.0, 0.1, "%.1f", curSettings.fTRT_Params_EXP_BIAS, defaultSettings.fTRT_Params_EXP_BIAS, function(state)
+        curSettings.fTRT_Params_EXP_BIAS = state
+		GameOptions.SetFloat('Editor/Characters/Hair/TRT_Params', 'EXP_BIAS', state)
+    end)
+
+--[Editor/Characters/Eyes]
+    nativeSettings.addSwitch("/CORPORAT/Eyes", "Use Ambient Occlusion On Eyes", "Use Ambient Occlusion On Eyes (Default: 'Off')", curSettings.bUseAOOnEyes, defaultSettings.bUseAOOnEyes, function(state)
+		curSettings.bUseAOOnEyes = state
+		GameOptions.SetBool('Editor/Characters/Eyes', 'UseAOOnEyes', state)
+	end)
+
+    nativeSettings.addRangeFloat("/CORPORAT/Eyes", "Diffuse Boost" ,"Diffuse Boost (Default: 0.1)*0.05", 0, 1.0, 0.01, "%.2f", curSettings.fECE_DiffuseBoost, defaultSettings.fECE_DiffuseBoost, function(state)
+        curSettings.fECE_DiffuseBoost = state
+		GameOptions.SetFloat('Editor/Characters/Eyes', 'DiffuseBoost', state)
+    end)
+
+--Skin
+	nativeSettings.addSwitch("/CORPORAT/Skin1", "Enable Ambient Skin Mix", "This flag controls whether ambient lighting (environment light probes, sky contribution, bounced GI) is allowed to mix into the skin shading model. (Default: 'On')*", curSettings.bECS_AllowSkinAmbientMix, defaultSettings.bECS_AllowSkinAmbientMix, function(state)
+		curSettings.bECS_AllowSkinAmbientMix = state
+		GameOptions.SetBool('Editor/Characters/Skin', 'AllowSkinAmbientMix', state)
 	 end)
 
-    nativeSettings.addRangeInt("/CORPORATCROWDS/AI", "LOD0 Bucket Size", "This controls the number of AI agents processed in the highest level of detail (LOD0) per update cycle (Default: 0)*16", 0, 16, 1, curSettings.iLOD0BucketSize, defaultSettings.iLOD0BucketSize, function(state)
-        curSettings.iLOD0BucketSize = state
-		GameOptions.SetInt('AI', 'LOD0BucketSize', state)
-    end)
+	nativeSettings.addRangeFloat("/CORPORAT/Skin1", "Ambient Skin Mix Factor", "Skin picks up more of the ambient environment light, appearing softer, more evenly lit, and sometimes a bit 'washed' under strong ambient. (Default: 1.0)", 0, 1.0, 0.01, "%.2f", curSettings.fECS_SkinAmbientMix_Factor, defaultSettings.fECS_SkinAmbientMix_Factor, function(state)
+		curSettings.fECS_SkinAmbientMix_Factor = state
+		GameOptions.SetFloat('Editor/Characters/Skin', 'SkinAmbientMix_Factor', state)
+	end)
 
-    nativeSettings.addRangeInt("/CORPORATCROWDS/AI", "LOD0 Tick Rate", "AI LOD0 agents are the highest-fidelity AI units, fully simulated with all behaviors and perception. This setting determines how often they are updated (Default: 1)", 1, 5, 1, curSettings.iLOD0TickRate, defaultSettings.iLOD0TickRate, function(state)
-        curSettings.iLOD0TickRate = state
-		GameOptions.SetInt('AI', 'LOD0TickRate', state)
-    end)
+	nativeSettings.addRangeFloat("/CORPORAT/Skin1", "Subsurface Specular Tint Weight", "Subsurface Specular Tint Weight (Default: 0.3)", 0, 1.0, 0.01, "%.2f", curSettings.fECS_SubsurfaceSpecularTintWeight, defaultSettings.fECS_SubsurfaceSpecularTintWeight, function(state)
+		curSettings.fECS_SubsurfaceSpecularTintWeight = state
+		GameOptions.SetFloat('Editor/Characters/Skin', 'SubsurfaceSpecularTintWeight', state)
+	end)
 
-    nativeSettings.addRangeInt("/CORPORATCROWDS/AI", "LOD1 Bucket Size", "AI LOD1 agents are medium-fidelity AI units — they receive simplified simulation compared to LOD0 (Default: 16)", 1, 16, 1, curSettings.iLOD1BucketSize, defaultSettings.iLOD1BucketSize, function(state)
-        curSettings.iLOD1BucketSize = state
-		GameOptions.SetInt('AI', 'LOD1BucketSize', state)
-    end)
+	nativeSettings.addRangeFloat("/CORPORAT/Skin1", "Skin Ambient Intensity Factor", "Skin Ambient Intensity Factor (Default: 0.4)", 0, 1.0, 0.01, "%.2f", curSettings.fECS_SkinAmbientIntensity_Factor, defaultSettings.fECS_SkinAmbientIntensity_Factor, function(state)
+		curSettings.fECS_SkinAmbientIntensity_Factor = state
+		GameOptions.SetFloat('Editor/Characters/Skin', 'SkinAmbientIntensity_Factor', state)
+	end)
 
-    nativeSettings.addRangeInt("/CORPORATCROWDS/AI", "LOD1 Tick Rate", "AI LOD1 agents are medium-fidelity AI units, so this controls how often their logic runs (Default: 4)", 1, 20, 1, curSettings.iLOD1TickRate, defaultSettings.iLOD1TickRate, function(state)
-        curSettings.iLOD1TickRate = state
-		GameOptions.SetInt('AI', 'LOD1TickRate', state)
-    end)
+	nativeSettings.addRangeFloat("/CORPORAT/Skin1", "Subsurface Specular Tint R", "Subsurface Specular Tint R (Default: 0.21)*0.27", 0, 1.0, 0.01, "%.2f", curSettings.fECS_SubsurfaceSpecularTint_R, defaultSettings.fECS_SubsurfaceSpecularTint_R, function(state)
+		curSettings.fECS_SubsurfaceSpecularTint_R = state
+		GameOptions.SetFloat('Editor/Characters/Skin', 'SubsurfaceSpecularTint_R', state)
+	end)
 
-    nativeSettings.addRangeInt("/CORPORATCROWDS/AI", "LOD2 Bucket Size", "AI LOD of long range NPC groups (Default: 16)", 1, 16, 1, curSettings.iLOD2BucketSize, defaultSettings.iLOD2BucketSize, function(state)
-        curSettings.iLOD2BucketSize = state
-		GameOptions.SetInt('AI', 'LOD2BucketSize', state)
-    end)
+	nativeSettings.addRangeFloat("/CORPORAT/Skin1", "Subsurface Specular Tint G", "Subsurface Specular Tint G (Default: 0.21)*0.27", 0, 1.0, 0.01, "%.2f", curSettings.fECS_SubsurfaceSpecularTint_G, defaultSettings.fECS_SubsurfaceSpecularTint_G, function(state)
+		curSettings.fECS_SubsurfaceSpecularTint_G = state
+		GameOptions.SetFloat('Editor/Characters/Skin', 'SubsurfaceSpecularTint_G', state)
+	end)
 
-    nativeSettings.addRangeInt("/CORPORATCROWDS/AI", "LOD2 Tick Rate", "AI LOD2 agents are low-fidelity AI units, which are simulated in a highly simplified way (Default: 8)", 1, 20, 1, curSettings.iLOD2TickRate, defaultSettings.iLOD2TickRate, function(state)
-        curSettings.iLOD2TickRate = state
-		GameOptions.SetInt('AI', 'LOD2TickRate', state)
-    end)
+	nativeSettings.addRangeFloat("/CORPORAT/Skin1", "Subsurface Specular Tint B", "Subsurface Specular Tint B (Default: 0.29)*0.31", 0, 1.0, 0.01, "%.2f", curSettings.fECS_SubsurfaceSpecularTint_B, defaultSettings.fECS_SubsurfaceSpecularTint_B, function(state)
+		curSettings.fECS_SubsurfaceSpecularTint_B = state
+		GameOptions.SetFloat('Editor/Characters/Skin', 'SubsurfaceSpecularTint_B', state)
+	end)
 
-    nativeSettings.addRangeInt("/CORPORATCROWDS/AI", "LOD3TickRate", "AI LOD3 agents are very low-detail AI units, typically for distant NPCs or large crowds (Default: 16)", 1, 20, 1, curSettings.iLOD3TickRate, defaultSettings.iLOD3TickRate, function(state)
-        curSettings.iLOD3TickRate = state
-		GameOptions.SetInt('AI', 'LOD3TickRate', state)
-    end)
+	nativeSettings.addSwitch("/CORPORAT/NRD", "Enable Scaling Compensation", "NRD tries to adjust its denoising to account for resolution differences or scaled reprojection history, helping prevent ghosting, blur, or undersampling artifacts. (Default: 'On')*", curSettings.bEnableScalingCompensation, defaultSettings.bEnableScalingCompensation, function(state)
+		curSettings.bEnableScalingCompensation = state
+		GameOptions.SetBool('Editor/Denoising/NRD', 'EnableScalingCompensation', state)
+	end)
 
-    nativeSettings.addSwitch("/CORPORATCROWDS/AI", "Variable Tick Rate Enabled", "This controls whether the AI system adapts its tick/update rate dynamically based on performance (Default: 'On')", curSettings.bVariableTickRateEnabled, defaultSettings.bVariableTickRateEnabled, function(state)
-		curSettings.bVariableTickRateEnabled = state
-		GameOptions.SetBool('AI', 'VariableTickRateEnabled', state)
-	 end)
+	nativeSettings.addSwitch("/CORPORAT/Rendering", "Checkerboard GI", "When enabled (true) the GI pass is rendered in a checkerboard pattern (half-resolution, interleaved pixels) and then reconstructed/upscaled to full resolution. (Default: 'On')", curSettings.bCheckerboardGI, defaultSettings.bCheckerboardGI, function(state)
+		curSettings.bCheckerboardGI = state
+		GameOptions.SetBool('Rendering', 'CheckerboardGI', state)
+	end)
 
--- [ReactionSystem]
+	nativeSettings.addRangeFloat("/CORPORAT/FoliageParameters", "Contact Shadow Clamp", "Limits how dark or strong contact shadows can get (Default: 0.6)", 0.01, 1.0, 0.01, "%.2f", curSettings.foliage_ContactShadowClamp, defaultSettings.foliage_ContactShadowClamp, function(state)
+		curSettings.foliage_ContactShadowClamp = state
+		GameOptions.SetFloat('Editor/FoliageParameters', 'ContactShadowClamp', state)
+	end)
 
-    nativeSettings.addSwitch("/CORPORATCROWDS/ReactionSystem", "Merging Fear Areas Enabled", "'On' NPCs’ fear trigger volumes will merge into bigger influence zones (instead of lots of overlapping tiny ones). If it’s 'Off', each fear area stays separate, which can make crowds react more locally and less “unified.” (Default: 'On')*", curSettings.bMergingFearAreasEnabled, defaultSettings.bMergingFearAreasEnabled, function(state)
-		curSettings.bMergingFearAreasEnabled = state
-		GameOptions.SetBool('ReactionSystem', 'MergingFearAreasEnabled', state)
-	 end)
+	nativeSettings.addButton("/CORPORAT", "Raster", "Best Quality Raster", "Raster", 45, function()
+		curSettings = LoadFile("Data/raster.json")
+		SaveFile("Data/config.json", curSettings)
+		Visuals.InitSettings()
+	end)
+
+	nativeSettings.addButton("/CORPORAT", "Raytracing", "Best Quality Pathtracing", "Raytracing", 45, function()
+		curSettings = LoadFile("Data/raytracing.json")
+		SaveFile("Data/config.json", curSettings)
+		Visuals.InitSettings()
+	end)
+
+	nativeSettings.addButton("/CORPORAT", "Pathtracing", "Best Quality Pathtracing", "Pathtracing", 45, function()
+		curSettings = LoadFile("Data/pathtracing.json")
+		SaveFile("Data/config.json", curSettings)
+		Visuals.InitSettings()
+	end)
 
 -------------------------------------------------------------------------------------------------
 	
@@ -550,5 +1036,5 @@ function CORPORATCROWDS:new()
 	
 end
 
-return CORPORATCROWDS:new()
+return CORPORAT:new()
 

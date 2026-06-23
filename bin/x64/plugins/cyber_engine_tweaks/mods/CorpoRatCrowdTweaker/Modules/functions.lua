@@ -1,235 +1,559 @@
-local CorpoCrowds = {}
+local CorpoRat = {}
 
-function CorpoCrowds.InitSettings()
+function CorpoRat.InitSettings()
+	--[World/Streaming/PersistencyCache]
+	GameOptions.SetInt('World/Streaming/PersistencyCache', 'MaxEntriesPerPage', curSettings.iMaxEntriesPerPage)
+	GameOptions.SetInt('World/Streaming/PersistencyCache', 'PoolBudgetKB', curSettings.iPoolBudgetKB)
 
---[Crowd]
-	GameOptions.SetBool('Crowd', 'EnablePedestrians', curSettings.bEnablePedestrians)
-	GameOptions.SetBool('Crowd', 'EnableVehicles', curSettings.bEnableVehicles)
-	GameOptions.SetBool('Crowd', 'Enabled', curSettings.bEnabled)
-	GameOptions.SetBool('Crowd', 'OnlyCorpoMan', curSettings.bOnlyCorpoMan)
-	GameOptions.SetBool('Crowd', 'UseFrustum', curSettings.bUseFrustum)
-	GameOptions.SetBool('Crowd', 'ZCutoffEnabled', curSettings.bZCutoffEnabled)
-	GameOptions.SetInt('Crowd', 'SpawnLimit', curSettings.iSpawnLimit)
-	GameOptions.SetInt('Crowd', 'ZCutoff', curSettings.iZCutoff)
-	GameOptions.SetFloat('Crowd', 'AppropriateMinDistToPlayer', curSettings.fAppropriateMinDistToPlayer)
-	GameOptions.SetFloat('Crowd', 'AppropriateMinLastSeenTime', curSettings.fAppropriateMinLastSeenTime)
-	GameOptions.SetFloat('Crowd', 'DespawnLastSeenMinTime', curSettings.fDespawnLastSeenMinTime)
-	GameOptions.SetFloat('Crowd', 'BaseParkedCarProbability', curSettings.fBaseParkedCarProbability)
-	GameOptions.SetFloat('Crowd', 'MinStreamingVelocityNormalizedToBlockSpawn', curSettings.fMinStreamingVelocityNormalizedToBlockSpawn)
+	--	[ResourceLoaderThrottler]
+	GameOptions.SetInt('ResourceLoaderThrottler', 'FloodMinNonLoadingThreads', curSettings.iFloodMinNonLoadingThreads)
+	GameOptions.SetInt('ResourceLoaderThrottler', 'StreamMaxLoadingThreads', curSettings.iStreamMaxLoadingThreads)
+	GameOptions.SetInt('ResourceLoaderThrottler', 'TrickleMaxLoadingThreads', curSettings.iTrickleMaxLoadingThreads)
 
--- [ReactionSystem]
-	GameOptions.SetBool('ReactionSystem', 'MergingFearAreasEnabled', curSettings.bMergingFearAreasEnabled)
+	--Streaming/culling
+	GameOptions.SetBool('Streaming/Culling', 'Strict', curSettings.bStrict)
 
---[CrowdMovement]
-	GameOptions.SetFloat('CrowdMovement', 'AheadAngleMax', curSettings.fAheadAngleMax)
-	GameOptions.SetFloat('CrowdMovement', 'AheadAngleMin', curSettings.fAheadAngleMin)
-	GameOptions.SetFloat('CrowdMovement', 'AheadDistanceMax', curSettings.fAheadDistanceMax)
-	GameOptions.SetFloat('CrowdMovement', 'AheadDistanceMin', curSettings.fAheadDistanceMin)
--- AngularSpeedFactor = 5.000000
--- BlockingObstaclesDetectionDistance = 2.000000
--- BorderRepulsionSpeed = 7.000000
--- CAPlayerDistanceThresholdBack = 10.000000
--- CAPlayerDistanceThresholdFront = 30.000000
--- ClosestObstacleToStayInPlace = 2.000000
--- ComfortZoneRadiusFactor = 1.250000
--- DesiredForwardLookupDistance = 0.750000
--- DilationClamp = -1.000000
--- DilationLimit = -1.000000
--- DirectionSmoothingAngleTolerance = 45.000000
-	GameOptions.SetFloat('CrowdMovement', 'DistanceToStopBuffer', curSettings.fDistanceToStopBuffer)
-	GameOptions.SetBool('CrowdMovement', 'EnableDirectionPostProcess', curSettings.bEnableDirectionPostProcess)
-	GameOptions.SetBool('CrowdMovement', 'EnableDirectionSmoothing', curSettings.bEnableDirectionSmoothing)
--- EntryPathPositionFastExitAngle = 30.000000
--- EntryPathPositionSearchDistance = 10.000000
--- EntryPathPositionSearchStep = 1.000000
-	GameOptions.SetFloat('CrowdMovement', 'FearSpreadRadius', curSettings.fFearSpreadRadius)
-	GameOptions.SetBool('CrowdMovement', 'FenceGapRepulsors', curSettings.bFenceGapRepulsors)
--- FixedTimeStep = -1.000000
-	GameOptions.SetBool('CrowdMovement', 'ForceStopColliders', curSettings.bForceStopColliders)
--- FrontViewAngle = 45.000000
-	GameOptions.SetBool('CrowdMovement', 'GlobalDisableLOD', curSettings.bGlobalDisableLOD)
--- InjectedCollidersZTolerance = 2.500000
-	GameOptions.SetFloat('CrowdMovement', 'LaneLightsRecognitionDistance', curSettings.fLaneLightsRecognitionDistance)
--- MarbleDirectionLookUp = 6
--- MarblePathDisplayMaxPoints = 5
--- MaxChancesToUseZebra = 4
--- MaxDirectionChangeAttempts = 4
--- MaxInterpAngle = 179.000000
--- MaxLanesCheckToJoinTrafficIfNotRelaxed = 10
--- MaxLanesCheckToJoinTrafficIfRelaxed = 4
--- MaxResumeMoveAttempts = 10
--- MinValidLanesCheckToJoinTraffic = 3
--- NPCObstaclesMass = 0.950000
--- NPCSeparationSpeed = 4.000000
-	GameOptions.SetBool('CrowdMovement', 'NarrowGapRepulsors', curSettings.bNarrowGapRepulsors)
-	GameOptions.SetFloat('CrowdMovement', 'NearEndDistance', curSettings.fNearEndDistance)
-	GameOptions.SetBool('CrowdMovement', 'NoGameplayNoUpdate', curSettings.bNoGameplayNoUpdate)
--- ObstacleMarbleRadiusMultiplier = 1.200000
--- OppositePathToleranceInDeg = 20.000000
--- OverlapTolerance = 0.100000
--- PassingPoseStopAnimationTolerance = 0.100000
--- PathConvergenceSpeed = 10.000000
--- PathRefreshPlayerRadiusLimit = 10.000000
--- PlanLimitDistanceToReplan = 2.000000
--- PlayerObstaclesMass = 1.000000
--- PostProcessPositionCorrectionSpeed = 5.000000
--- RotationSpeedFactor = 5.000000
--- SeparationSpeedFactor = 2.000000
--- SeparationSpringTime = 5.000000
--- SharpAngle = 120.000000
-	GameOptions.SetInt('CrowdMovement', 'SlopeSamples', curSettings.iSlopeSamples)
--- SpeedCompensationFactor = 0.100000
-	GameOptions.SetFloat('CrowdMovement', 'TrafficLightRelevantDistance', curSettings.fTrafficLightRelevantDistance)
--- VehicleObstaclesMass = 1.050000
+	--Streaming
+	GameOptions.SetFloat('Streaming', 'PrecacheDistance', curSettings.fPrecacheDistance)
+	GameOptions.SetInt('Streaming', 'MaxNodesPerFrame', curSettings.iMaxNodesPerFrame)
+	GameOptions.SetFloat('Streaming', 'MinStreamingDistance', curSettings.fMinStreamingDistance)
+	GameOptions.SetFloat('Streaming', 'TimeLimitSectorLoadPerFrame', curSettings.fTimeLimitSectorLoadPerFrame)
+	GameOptions.SetFloat('Streaming', 'TimeLimitSectorUnloadPerFrame', curSettings.fTimeLimitSectorUnloadPerFrame)
+	GameOptions.SetFloat('Streaming', 'TimeLimitStreamedPerFrame', curSettings.fTimeLimitStreamedPerFrame)
+	GameOptions.SetFloat('Streaming', 'RadiusNearSecondaryRefPointAddend', curSettings.fRadiusNearSecondaryRefPointAddend)
 
---[Crowds]
-	GameOptions.SetBool('Crowds', 'CheckOnLaneUseLookup', curSettings.bCheckOnLaneUseLookup)
-	GameOptions.SetBool('Crowds', 'EnableItems', curSettings.bEnableItems)
-	GameOptions.SetBool('Crowds', 'MarblePathsHistoryEnabled', curSettings.bMarblePathsHistoryEnabled)
---BufferForAllowedDrivingOffRoadPercentOfCarWidth = 0.800000
---BufferForAllowedDrivingOnPavementPercentOfPavementSide = 0.500000
-	GameOptions.SetFloat('Crowds', 'EnterWorkspotDelay', curSettings.fEnterWorkspotDelay)
-	GameOptions.SetFloat('Crowds', 'ExponentDrivingOnPavement', curSettings.fExponentDrivingOnPavement)
-	GameOptions.SetFloat('Crowds', 'MaxSpeedDrivingOnPavement', curSettings.fMaxSpeedDrivingOnPavement)
+	--Streaming/Culling/AutoHideDistanceNear
+	GameOptions.SetBool('Streaming/Culling/AutoHideDistanceNear', 'Enabled', curSettings.bStreamingCullingAutoHideDistanceNearEnabled)
 
---[AI/Vehicle/ChaseTarget]
-	GameOptions.SetFloat('AI/Vehicle/ChaseTarget', 'AvoidanceMultiplier', curSettings.fAvoidanceMultiplier)
-	GameOptions.SetFloat('AI/Vehicle/ChaseTarget', 'DefaultMultiplier', curSettings.fDefaultMultiplier)
-	GameOptions.SetBool('AI/Vehicle/ChaseTarget', 'KeepDistanceEnabled', curSettings.bKeepDistanceEnabled)
-	GameOptions.SetFloat('AI/Vehicle/ChaseTarget', 'RoadsMultiplier', curSettings.fRoadsMultiplier)
-	GameOptions.SetFloat('AI/Vehicle/ChaseTarget', 'StairsMultiplier', curSettings.fStairsMultiplier)
-	GameOptions.SetFloat('AI/Vehicle/ChaseTarget', 'TerrainMultiplier', curSettings.fTerrainMultiplier)
+	--Rendering
+	GameOptions.SetInt('Rendering', 'DistantShadowsMaxBatchSize', curSettings.iDistantShadowsMaxBatchSize)
+	GameOptions.SetInt('Rendering', 'DistantShadowsMaxTrianglesPerBatch', curSettings.iDistantShadowsMaxTrianglesPerBatch)
+	GameOptions.SetInt('Rendering', 'RainMapBatchMaxSize', curSettings.iRainMapBatchMaxSize)
+	GameOptions.SetInt('Rendering', 'RainMapBatchMaxTrianglesPerBatch', curSettings.iRainMapBatchMaxTrianglesPerBatch)
+	GameOptions.SetBool('Rendering', 'AllowRTXDIRejitter', curSettings.bAllowRTXDIRejitter)
+	GameOptions.SetBool('Rendering', 'AllowRayTracedReferenceRejitter', curSettings.bAllowRayTracedReferenceRejitter)
+	GameOptions.SetBool('Rendering', 'DistantGiFix', curSettings.bDistantGiFix)
+	GameOptions.SetBool('Rendering', 'GarmentUseSmoothing', curSettings.bGarmentUseSmoothing)
+	GameOptions.SetBool('Rendering', 'UseExperimentalVolFog', curSettings.bUseExperimentalVolFog)
+	GameOptions.SetBool('Rendering', 'AllowRTXDIRejitter', curSettings.bAllowRTXDIRejitter)
+	GameOptions.SetBool('Rendering', 'CheckerboardGI', curSettings.bCheckerboardGI)
+	GameOptions.SetInt('Rendering', 'MaxGbufferSplits', curSettings.iMaxGbufferSplits)
+	GameOptions.SetFloat('Rendering', 'VolumetricFogVolume_DefaultAbsorption', curSettings.fVolumetricFogVolume_DefaultAbsorption)
+ 
+	--Rendering/LUT
+	GameOptions.SetInt('Rendering/LUT', 'Size', curSettings.iLUTSize)
+	GameOptions.SetFloat('Rendering/LUT', 'MinRange', tonumber(curSettings.fLUTMinRange))
+	GameOptions.SetFloat('Rendering/LUT', 'MaxRange', curSettings.fLUTMaxRange)
 
---[Editor/Navigation]
-	GameOptions.SetFloat('Editor/Navigation', 'TrafficDistanceThreshold', curSettings.fTrafficDistanceThreshold)
+	--Editor/PathTracing
+	GameOptions.SetBool('Editor/PathTracing', 'UseScreenSpaceData', curSettings.bUseScreenSpaceData)
+	GameOptions.SetBool('Editor/PathTracing', 'UseSSRFallback', curSettings.bUseSSRFallback)
 
---[Traffic]
--- AvoidZebra2Zebra = true
--- CurveLookahead = false
--- DeathLimit = 10.000000
-	GameOptions.SetFloat('Traffic', 'DeathLimit', curSettings.fDeathLimit)
-	GameOptions.SetBool('Traffic', 'DisableLOD', curSettings.bDisableLOD)
--- DisplacementCap = 1.000000
--- DisposeOnOverlap = false
--- DisposeOnSummon = true
--- FrontAngle = 15.000000
--- MaxLocalPathLength = 100.000000
--- MaxPathLanes = 5
-	GameOptions.SetFloat('Traffic', 'MinDriveSpeed', curSettings.fMinDriveSpeed)
--- PathLaneIntersectionDownTolerance = 1.000000
--- PathLaneIntersectionUpTolerance = 2.000000
-	GameOptions.SetBool('Traffic', 'SafetyMeasure', curSettings.bSafetyMeasure)
--- SideAngle = 10.000000
--- SkippingTimeTimeDilation = 3.000000
-	GameOptions.SetFloat('Traffic', 'SlotLaneOccupancyArea_Pedestrian', curSettings.fSlotLaneOccupancyArea_Pedestrian)
-	GameOptions.SetFloat('Traffic', 'SlotLaneOccupancyArea_Vehicle_Length', curSettings.fSlotLaneOccupancyArea_Vehicle_Length)
-	GameOptions.SetBool('Traffic', 'SpeedSplicing', curSettings.bSpeedSplicing)
-	GameOptions.SetFloat('Traffic', 'SpotDetectionPrecision', curSettings.fSpotDetectionPrecision)
-	GameOptions.SetFloat('Traffic', 'SpotDetectionRange', curSettings.fSpotDetectionRange)
-	GameOptions.SetBool('Traffic', 'StopSpawn', curSettings.bStopSpawn)
--- StraightTurnLimit = 15.000000
--- TeleportationDistance = 340282346638528859811704183484516925440.000000
-	GameOptions.SetBool('Traffic', 'UncrowdMultiLaneRoads', curSettings.bUncrowdMultiLaneRoads)
--- 	GameOptions.GetBool('Traffic', 'UncrowdMultiLaneRoads'
---	print('[Traffic] UncrowdMultiLaneRoads: ', GameOptions.GetBool("Traffic","UncrowdMultiLaneRoads"))	
-	GameOptions.SetBool('Traffic', 'UncrowdOneLaneRoads', curSettings.bUncrowdOneLaneRoads)
-	GameOptions.SetFloat('Traffic', 'leftLaneSpeedIncrease', curSettings.fleftLaneSpeedIncrease)
-	GameOptions.SetFloat('Traffic', 'GreenWaveAveragePredictedCarSpeed', curSettings.fGreenWaveAveragePredictedCarSpeed)
-	GameOptions.SetFloat('Traffic', 'GreenWaveLength', curSettings.fGreenWaveLength)
-	GameOptions.SetFloat('Traffic', 'MinTimeBeforeGreenWave', curSettings.fMinTimeBeforeGreenWave)
-	GameOptions.SetFloat('Traffic', 'MaxTimeBeforeGreenWave', curSettings.fMaxTimeBeforeGreenWave)
-	GameOptions.SetFloat('Traffic', 'PlayerPrediction', curSettings.fPlayerPrediction)
-	GameOptions.SetFloat('Traffic', 'SafetyMeasureDistance', curSettings.fSafetyMeasureDistance)
+	-- Raytracing
+	GameOptions.SetBool('RayTracing', 'EnableShadowCascades', curSettings.bEnableShadowCascades)
+	GameOptions.SetFloat('RayTracing', 'CullingDistanceCharacter', curSettings.fCullingDistanceCharacter)
+	GameOptions.SetFloat('RayTracing', 'CullingDistanceVehicle', curSettings.fCullingDistanceVehicle)
+	GameOptions.SetBool('RayTracing', 'EnableImportanceSampling', curSettings.bEnableImportanceSampling)
+	GameOptions.SetBool('RayTracing', 'EnableShadowOptimizations', curSettings.bEnableShadowOptimizations)
+	GameOptions.SetBool('RayTracing', 'EnableGlobalShadow', curSettings.bEnableGlobalShadow)
+	GameOptions.SetBool('RayTracing', 'EnableLocalShadow', curSettings.bEnableLocalShadow)
+	GameOptions.SetFloat('RayTracing', 'TracingRadiusReflections', curSettings.fTracingRadiusReflections)
+	GameOptions.SetFloat('RayTracing', 'TracingRadius', curSettings.fTracingRadius)
+	GameOptions.SetBool('RayTracing', 'EnableAmbientOcclusion', curSettings.bEnableAmbientOcclusion)
+	GameOptions.SetBool('RayTracing', 'EnableTransparentReflection', curSettings.bEnableTransparentReflection)
+	GameOptions.SetBool('RayTracing', 'EnableDiffuseIllumination', curSettings.bEnableDiffuseIllumination)
+	GameOptions.SetBool('RayTracing', 'EnableReflection', curSettings.bEnableReflection)
+	GameOptions.SetBool('RayTracing', 'EnableGlobalIllumination', curSettings.bEnableGlobalIllumination)
+	GameOptions.SetBool('RayTracing', 'ForceShadowLODBiasUsage', curSettings.bForceShadowLODBiasUsage)
+	GameOptions.SetInt('RayTracing', 'ScratchBufferSizeMB', curSettings.iScratchBufferSizeMB)
+	GameOptions.SetInt('RayTracing', 'GeometryUpdateBufferSizeMB', curSettings.iGeometryUpdateBufferSizeMB)
+	GameOptions.SetInt('RayTracing', 'AccelerationStructureBuildNumMax', curSettings.iAccelerationStructureBuildNumMax)
+	GameOptions.SetBool('RayTracing', 'EnableNRD', curSettings.bEnableNRD)
+	GameOptions.SetInt('RayTracing', 'MaterialProxyUpdateNumMax', curSettings.iMaterialProxyUpdateNumMax)
+	GameOptions.SetInt('RayTracing', 'MaterialProxyNumMax', curSettings.iMaterialProxyNumMax)
 
---[VehicleAI]
-	GameOptions.SetFloat('VehicleAI', 'PerceptionCollisionPropagationArea', curSettings.fPerceptionCollisionPropagationArea)
-	GameOptions.SetFloat('VehicleAI', 'PerceptionTargetPropagationArea', curSettings.fPerceptionTargetPropagationArea)
+	--RayTracing/Reflection
+	GameOptions.SetBool('RayTracing/Reflection', 'AdaptiveSampling', curSettings.bReflectionAdaptiveSampling)
 
---[Vehicle]
-	GameOptions.SetBool('Vehicle', 'AirControlBikePitchHelper', curSettings.bAirControlBikePitchHelper)
---	GameOptions.SetBool('Vehicle', 'BikeHackTiltCalcValue', curSettings.bBikeHackTiltCalcValue)
---	GameOptions.SetBool('Vehicle', 'BlockChangeGear', curSettings.bBlockChangeGear)
-	GameOptions.SetBool('Vehicle', 'DisableCollisionDamage', curSettings.bDisableCollisionDamage)
---	GameOptions.SetBool('Vehicle', 'EnableAirResistance', curSettings.bEnableAirResistance)
---	GameOptions.SetBool('Vehicle', 'EnableLateralTireSkidThinning', curSettings.bEnableLateralTireSkidThinning)
-	GameOptions.SetBool('Vehicle', 'EnableLowVelStoppingResistance', curSettings.bEnableLowVelStoppingResistance)
---	GameOptions.SetBool('Vehicle', 'EnableSmoothWheelContacts', curSettings.bEnableSmoothWheelContacts)
-	GameOptions.SetFloat('Vehicle', 'ForceMoveToMaxAngularSpeed', curSettings.fForceMoveToMaxAngularSpeed)
-	GameOptions.SetFloat('Vehicle', 'ForceMoveToMaxLinearSpeed', curSettings.fForceMoveToMaxLinearSpeed)
---	GameOptions.SetBool('Vehicle', 'ForceSimplifiedMovement', curSettings.bForceSimplifiedMovement)
--- LateralTireSkidThinningMultiplier = 2.000000
--- LateralTireSkidThinningVectorMaxLength = 17.500000
--- MaxSpeedFromPreviousActionSimplifiedMovement = 10.000000
-	GameOptions.SetInt('Vehicle', 'PopTire', curSettings.iPopTire)
-	GameOptions.SetBool('Vehicle', 'ToggleTireShooting', curSettings.bToggleTireShooting)
---	GameOptions.SetBool('Vehicle', 'UseDifferential', curSettings.bUseDifferential)
--- VelocitySmoothingTime = 0.300000
--- WeightTransferMode = 1
-	GameOptions.SetBool('Vehicle', 'AirControlCarRollHelper', curSettings.bAirControlCarRollHelper)
---	GameOptions.SetBool('Vehicle', 'helperCollisionObserverInViewOnly', curSettings.bhelperCollisionObserverInViewOnly)
---	GameOptions.SetBool('Vehicle', 'helperCollisionObservers', curSettings.bhelperCollisionObservers)
-	GameOptions.SetBool('Vehicle', 'physicsCCD', curSettings.bphysicsCCD)
---	GameOptions.SetBool('Vehicle', 'trafficVsTrafficCollisions', curSettings.btrafficVsTrafficCollisions)
---	GameOptions.SetBool('Vehicle', 'vehicleVsVehicleCollisions', curSettings.bvehicleVsVehicleCollisions)
+	--RayTracing/Diffuse
+	GameOptions.SetBool('RayTracing/Diffuse', 'AdaptiveSampling', curSettings.bDiffuseAdaptiveSampling)
 
---[ObjectSelection]
-	GameOptions.SetInt('ObjectSelection', 'MaxFindPathsLimit', curSettings.iMaxFindPathsLimit)
-	GameOptions.SetFloat('ObjectSelection', 'MaxFindPathsTimeLimitMs', curSettings.fMaxFindPathsTimeLimitMs)
+	--Developer/FeatureToggles
+	GameOptions.SetBool('Developer/FeatureToggles', 'CharacterRimEnhancement', curSettings.bCharacterRimEnhancement)
+	GameOptions.SetBool('Developer/FeatureToggles', 'ConstrastAdaptiveSharpening', curSettings.bConstrastAdaptiveSharpening)
+	GameOptions.SetBool('Developer/FeatureToggles', 'ContactShadows', curSettings.bContactShadows)
+	GameOptions.SetBool('Developer/FeatureToggles', 'ScreenSpaceUnderwater', curSettings.bScreenSpaceUnderwater)
+	GameOptions.SetBool('Developer/FeatureToggles', 'VolumetricFog', curSettings.bVolumetricFog)
+	GameOptions.SetBool('Developer/FeatureToggles', 'Bloom', curSettings.bBloom)
+	GameOptions.SetBool('Developer/FeatureToggles', 'ScreenSpaceHeatHaze', curSettings.bScreenSpaceHeatHaze)
+	GameOptions.SetBool('Developer/FeatureToggles', 'RTXDI', curSettings.bRTXDI)
+	GameOptions.SetBool('Developer/FeatureToggles', 'ScreenSpaceReflection', curSettings.bScreenSpaceReflection)
+	GameOptions.SetBool('Developer/FeatureToggles', 'ScreenSpacePlanarReflection', curSettings.bScreenSpacePlanarReflection)
+	GameOptions.SetBool('Developer/FeatureToggles', 'DistantGI', curSettings.bDistantGI)
+	GameOptions.SetBool('Developer/FeatureToggles', 'CharacterSubsurfaceScattering', curSettings.bCharacterSubsurfaceScattering)
+	GameOptions.SetBool('Developer/FeatureToggles', 'CharacterSubsurfaceTranslucency', curSettings.bCharacterSubsurfaceTranslucency)
 
---[Failsafe/ChoiceLookAt]
-	GameOptions.SetFloat('Failsafe/ChoiceLookAt', 'activationDelay', curSettings.factivationDelay)
-	GameOptions.SetFloat('Failsafe/ChoiceLookAt', 'activationTolerance', curSettings.factivationTolerance)
-	GameOptions.SetFloat('Failsafe/ChoiceLookAt', 'positionDeltaReset', curSettings.fpositionDeltaReset)
+	--Editor/Audio/Features
+	GameOptions.SetBool('Editor/Audio/Features', 'BreathingSystem', curSettings.bBreathingSystem)
 
---[MovementPolicies]
-	GameOptions.SetBool('MovementPolicies', 'MoveAwayFromTargetOnInfluenceMap', curSettings.bMoveAwayFromTargetOnInfluenceMap)
-	GameOptions.SetBool('MovementPolicies', 'RunFromThreatOnInfluenceMap', curSettings.bRunFromThreatOnInfluenceMap)
+	--Rendering/Shadows
+	GameOptions.SetFloat('Rendering/Shadows', 'CascadeRange0', curSettings.fCascadeRange0)
+	GameOptions.SetFloat('Rendering/Shadows', 'CascadeRange1', curSettings.fCascadeRange1)
+	GameOptions.SetFloat('Rendering/Shadows', 'CascadeRange2', curSettings.fCascadeRange2)
+	GameOptions.SetFloat('Rendering/Shadows', 'CascadeRange3', curSettings.fCascadeRange3)
+	GameOptions.SetBool('Rendering/Shadows', 'CascadesHeuristicForceRefresh', curSettings.bCascadesHeuristicForceRefresh)
+	GameOptions.SetFloat('Rendering/Shadows', 'CascadesHeuristicMinMeshAutohideDistInCascade0', curSettings.fCascadesHeuristicMinMeshAutohideDistInCascade0)
+	GameOptions.SetFloat('Rendering/Shadows', 'CascadesHeuristicMinMeshAutohideDistInCascade1', curSettings.fCascadesHeuristicMinMeshAutohideDistInCascade1)
+	GameOptions.SetFloat('Rendering/Shadows', 'CascadesHeuristicMinMeshAutohideDistInCascade2', curSettings.fCascadesHeuristicMinMeshAutohideDistInCascade2)
+	GameOptions.SetFloat('Rendering/Shadows', 'CascadesHeuristicMinMeshAutohideDistInCascade3', curSettings.fCascadesHeuristicMinMeshAutohideDistInCascade3)
+	GameOptions.SetFloat('Rendering/Shadows', 'CascadesHeuristicMinMeshSizeInCascade0', curSettings.fCascadesHeuristicMinMeshSizeInCascade0)
+	GameOptions.SetFloat('Rendering/Shadows', 'CascadesHeuristicMinMeshSizeInCascade1', curSettings.fCascadesHeuristicMinMeshSizeInCascade1)
+	GameOptions.SetFloat('Rendering/Shadows', 'CascadesHeuristicMinMeshSizeInCascade2', curSettings.fCascadesHeuristicMinMeshSizeInCascade2)
+	GameOptions.SetFloat('Rendering/Shadows', 'CascadesHeuristicMinMeshSizeInCascade3', curSettings.fCascadesHeuristicMinMeshSizeInCascade3)
+	GameOptions.SetFloat('Rendering/Shadows', 'DistantHeuristicMinMeshAutohideDistInCascade0', curSettings.fDistantHeuristicMinMeshAutohideDistInCascade0)
+	GameOptions.SetFloat('Rendering/Shadows', 'DistantHeuristicMinMeshAutohideDistInCascade1', curSettings.fDistantHeuristicMinMeshAutohideDistInCascade1)
+	GameOptions.SetFloat('Rendering/Shadows', 'DistantHeuristicMinMeshAutohideDistInCascade2', curSettings.fDistantHeuristicMinMeshAutohideDistInCascade2)
+	GameOptions.SetFloat('Rendering/Shadows', 'DistantHeuristicMinMeshSizeInCascade0', curSettings.fDistantHeuristicMinMeshSizeInCascade0)
+	GameOptions.SetFloat('Rendering/Shadows', 'DistantHeuristicMinMeshSizeInCascade1', curSettings.fDistantHeuristicMinMeshSizeInCascade1)
+	GameOptions.SetFloat('Rendering/Shadows', 'DistantHeuristicMinMeshSizeInCascade2', curSettings.fDistantHeuristicMinMeshSizeInCascade2)
+	GameOptions.SetBool('Rendering/Shadows', 'DistantShadowsForceFoliageGeometry', curSettings.bDistantShadowsForceFoliageGeometry)
 
---[Occlusion]
-	GameOptions.SetBool('Occlusion', 'ForceFullTest', curSettings.bForceFullTest)
-	GameOptions.SetInt('Occlusion', 'TestPhasesCount', curSettings.iTestPhasesCount)
+	--[Editor/SHARC]
+	GameOptions.SetInt('Editor/SHARC', 'Bounces', curSettings.iSHARC_Bounces)
+	GameOptions.SetInt('Editor/SHARC', 'DownscaleFactor', curSettings.iSHARC_DownscaleFactor)
+	GameOptions.SetBool('Editor/SHARC', 'Enable', curSettings.bSHARC_Enable)
+	GameOptions.SetFloat('Editor/SHARC', 'SceneScale', curSettings.fSHARC_SceneScale)
+	GameOptions.SetBool('Editor/SHARC', 'UseRTXDIAtPrimary', curSettings.bUseRTXDIAtPrimary)
+	GameOptions.SetBool('Editor/SHARC', 'UseRTXDIWithAlbedo', curSettings.bUseRTXDIWithAlbedo)
+	GameOptions.SetFloat('Editor/SHARC', 'UsePrevFrameBiasAllowance', curSettings.fUsePrevFrameBiasAllowance)
+	GameOptions.SetInt('Editor/SHARC', 'HistoryReset', curSettings.iHistoryReset)
+	GameOptions.SetBool('Editor/SHARC', 'UsePrevFrame', curSettings.bUsePrevFrame)
+	GameOptions.SetBool('Editor/SHARC', 'Clear', curSettings.bClear)
 
---[AI]
-	GameOptions.SetBool('AI', 'EnableLowFPSDetection', curSettings.bEnableLowFPSDetection)
-	GameOptions.SetInt('AI', 'LOD0BucketSize', curSettings.iLOD0BucketSize)
-	GameOptions.SetInt('AI', 'LOD0TickRate', curSettings.iLOD0TickRate)
-	GameOptions.SetInt('AI', 'LOD1BucketSize', curSettings.iLOD1BucketSize)
-	GameOptions.SetInt('AI', 'LOD1TickRate', curSettings.iLOD1TickRate)
-	GameOptions.SetInt('AI', 'LOD2BucketSize', curSettings.iLOD2BucketSize)
-	GameOptions.SetInt('AI', 'LOD2TickRate', curSettings.iLOD2TickRate)
-	GameOptions.SetInt('AI', 'LOD3TickRate', curSettings.iLOD3TickRate)
+	--Editor/Denoising/NRD
+	GameOptions.SetBool('Editor/Denoising/NRD', 'EnableScalingCompensation', curSettings.bEnableScalingCompensation)
+	GameOptions.SetBool('RayTracing/NRD', 'UseReblurForDirectRadiance', curSettings.bUseReblurForDirectRadiance)
+	GameOptions.SetBool('RayTracing/NRD', 'UseReblurForIndirectRadiance', curSettings.bUseReblurForIndirectRadiance)
 
---[GameSenses]
-	GameOptions.SetInt('GameSenses', 'RayTestsPerThreadLimit', curSettings.iRayTestsPerThreadLimit)
-	GameOptions.SetInt('GameSenses', 'SensorsToUpdateLimit', curSettings.iSensorsToUpdateLimit)
+	--Editor/Characters/Hair
+	GameOptions.SetBool('Editor/Characters/Hair', 'UseReferenceImplementation', curSettings.bUseReferenceImplementation)
+	GameOptions.SetFloat('Editor/Characters/Hair', 'AlbedoMultiplier', curSettings.fAlbedoMultiplier)
+	GameOptions.SetFloat('Editor/Characters/Hair', 'RoughnessFactor', curSettings.fRoughnessFactor)
+	GameOptions.SetFloat('Editor/Characters/Hair', 'AdditionalAreaRoughness', curSettings.fAdditionalAreaRoughness)
+	GameOptions.SetFloat('Editor/Characters/Hair', 'SpecularRandom_Min', curSettings.fSpecularRandom_Min)
+	GameOptions.SetFloat('Editor/Characters/Hair', 'SpecularRandom_Max', curSettings.fSpecularRandom_Max)
+	GameOptions.SetBool('Editor/Characters/Hair', 'UseGlobalContactShadowsOnHair', curSettings.bUseGlobalContactShadowsOnHair)
+	GameOptions.SetFloat('Editor/Characters/Hair', 'ContactShadowClamp', curSettings.fContactShadowClamp)
 
---[Marble]
-	GameOptions.SetInt('Marble', 'AvoidanceMarblesAnticipation', curSettings.iAvoidanceMarblesAnticipation)
--- ChainAngleSmooth = 10.000000
--- ChainAngleVariationTolerance = 120.000000
--- DirectionSmoothFactorMax = 1.000000
--- DirectionSmoothFactorMin = 0.500000
-	GameOptions.SetBool('Marble', 'EnableAnticipationGrouping', curSettings.bEnableAnticipationGrouping)
-	GameOptions.SetBool('Marble', 'EnablePlayerSlot', curSettings.bEnablePlayerSlot)
-	GameOptions.SetBool('Marble', 'EnableZebraSpread', curSettings.bEnableZebraSpread)
-	GameOptions.SetInt('Marble', 'LightSpreadingMarbleAnticipation', curSettings.iLightSpreadingMarbleAnticipation)
--- LocalPathMinimumPointDistance = 0.600000
-	GameOptions.SetBool('Marble', 'LocalPathProjection', curSettings.bLocalPathProjection)
--- MarbleAnticipationAngleTolerance = 70.000000
--- MarbleDebugLimit = 5
--- MarbleLookupRange = 6.000000
--- MarbleLookupZOffset = -1.000000
--- MarbleLookupZRange = 3.500000
--- MaximumFrontAngleToIgnoreObstacle = 45.000000
--- NPCMarbleRepulsionFactor = 1.200000
--- ObstacleLandingTimeTolerance = 2.000000
--- ObstacleStopOffset = 0.100000
--- SafePositionAngleDifferenceTolerance = 45.000000
--- StaticMarbleRepulsionFactor = 1.300000
--- ZebraEarlyStopMax = 1.250000
--- ZebraEarlyStopMin = 0.500000
--- ZebraSafePositionRadius = 0.500000
+	GameOptions.SetFloat('Editor/FoliageParameters', 'ContactShadowClamp', curSettings.foliage_ContactShadowClamp)
 
+	--[Editor/Characters/Hair/Specular]
+	GameOptions.SetFloat('Editor/Characters/Hair/Specular', 'Wrap', curSettings.fECHS_Wrap)
+	GameOptions.SetFloat('Editor/Characters/Hair/Specular', 'Mask_Intensity', curSettings.fECHS_Mask_Intensity)
+
+	--[Editor/Characters/Hair/MultiScatter]
+	GameOptions.SetFloat('Editor/Characters/Hair/MultiScatter', 'Wrap', curSettings.fECHM_Wrap)
+	GameOptions.SetFloat('Editor/Characters/Hair/MultiScatter', 'Mask_Intensity', curSettings.fECHM_Mask_Intensity)
+	GameOptions.SetFloat('Editor/Characters/Hair/MultiScatter', 'DiffuseScatterFactor', curSettings.fECHM_DiffuseScatterFactor)
+
+	--[Editor/Characters/Hair/EnvProbe]
+	GameOptions.SetFloat('Editor/Characters/Hair/EnvProbe', 'R', curSettings.fECHE_R)
+	GameOptions.SetFloat('Editor/Characters/Hair/EnvProbe', 'TT', curSettings.fECHE_TT)
+	GameOptions.SetFloat('Editor/Characters/Hair/EnvProbe', 'TRT', curSettings.fECHE_TRT)
+	GameOptions.SetFloat('Editor/Characters/Hair/EnvProbe', 'MultiScatter', curSettings.fECHE_MultiScatter)
+	GameOptions.SetFloat('Editor/Characters/Hair/EnvProbe', 'ScatterDepth', curSettings.fECHE_ScatterDepth)
+
+	--[Editor/Characters/Hair/LocalLight]
+	GameOptions.SetFloat('Editor/Characters/Hair/LocalLight', 'R', curSettings.fECHL_R)
+	GameOptions.SetFloat('Editor/Characters/Hair/LocalLight', 'TT', curSettings.fECHL_TT)
+	GameOptions.SetFloat('Editor/Characters/Hair/LocalLight', 'TRT', curSettings.fECHL_TRT)
+	GameOptions.SetFloat('Editor/Characters/Hair/LocalLight', 'MultiScatter', curSettings.fECHL_MultiScatter)
+	GameOptions.SetFloat('Editor/Characters/Hair/LocalLight', 'ScatterDepth', curSettings.fECHL_ScatterDepth)
+
+	--[Editor/Characters/Hair/GlobalLight]
+	GameOptions.SetFloat('Editor/Characters/Hair/GlobalLight', 'R', curSettings.fECHG_R)
+	GameOptions.SetFloat('Editor/Characters/Hair/GlobalLight', 'TT', curSettings.fECHG_TT)
+	GameOptions.SetFloat('Editor/Characters/Hair/GlobalLight', 'TRT', curSettings.fECHG_TRT)
+	GameOptions.SetFloat('Editor/Characters/Hair/GlobalLight', 'MultiScatter', curSettings.fECHG_MultiScatter)
+	GameOptions.SetFloat('Editor/Characters/Hair/GlobalLight', 'ScatterDepth', curSettings.fECHG_ScatterDepth)
+
+	--[Editor/Characters/Hair/AlphaShifts]
+	GameOptions.SetFloat('Editor/Characters/Hair/AlphaShifts', 'R', curSettings.fECHA_R)
+	GameOptions.SetFloat('Editor/Characters/Hair/AlphaShifts', 'TT', curSettings.fECHA_TT)
+	GameOptions.SetFloat('Editor/Characters/Hair/AlphaShifts', 'TRT', curSettings.fECHA_TRT)
+
+	--[Editor/Characters/Hair/HACKS]
+	GameOptions.SetFloat('Editor/Characters/Hair/HACKS', 'HACK_Factor0', curSettings.fECHH_HACK_Factor0)
+	GameOptions.SetFloat('Editor/Characters/Hair/HACKS', 'HACK_Factor1', curSettings.fECHH_HACK_Factor1)
+	GameOptions.SetFloat('Editor/Characters/Hair/HACKS', 'HACK_Factor2', curSettings.fECHH_HACK_Factor2)
+	GameOptions.SetFloat('Editor/Characters/Hair/HACKS', 'HACK_Factor3', curSettings.fECHH_HACK_Factor3)
+	GameOptions.SetBool('Editor/Characters/Hair/HACKS', 'AAAA_HACK_hairModifiedLocalLightIntensity', curSettings.bECHH_AAAA_HACK_hairModifiedLocalLightIntensity)
+
+	--[Editor/Characters/Hair/TRT_Params]
+	GameOptions.SetFloat('Editor/Characters/Hair/TRT_Params', 'EXP_SCALE', curSettings.fTRT_Params_EXP_SCALE)
+	GameOptions.SetFloat('Editor/Characters/Hair/TRT_Params', 'EXP_BIAS', curSettings.fTRT_Params_EXP_BIAS)
+
+	--[Editor/Characters/Skin]
+	GameOptions.SetBool('Editor/Characters/Skin', 'AllowSkinAmbientMix', curSettings.bECS_AllowSkinAmbientMix)
+	GameOptions.SetFloat('Editor/Characters/Skin', 'SkinAmbientMix_Factor', curSettings.fECS_SkinAmbientMix_Factor)
+	GameOptions.SetFloat('Editor/Characters/Skin', 'SubsurfaceSpecularTintWeight', curSettings.fECS_SubsurfaceSpecularTintWeight)
+	GameOptions.SetFloat('Editor/Characters/Skin', 'SkinAmbientIntensity_Factor', curSettings.fECS_SkinAmbientIntensity_Factor)
+	GameOptions.SetFloat('Editor/Characters/Skin', 'SubsurfaceSpecularTint_R', curSettings.fECS_SubsurfaceSpecularTint_R)
+	GameOptions.SetFloat('Editor/Characters/Skin', 'SubsurfaceSpecularTint_G', curSettings.fECS_SubsurfaceSpecularTint_G)
+	GameOptions.SetFloat('Editor/Characters/Skin', 'SubsurfaceSpecularTint_B', curSettings.fECS_SubsurfaceSpecularTint_B)
+
+	--[Editor/Characters/Eyes]
+	GameOptions.SetFloat('Editor/Characters/Eyes', 'DiffuseBoost', curSettings.fECE_DiffuseBoost)
+	GameOptions.SetBool('Editor/Characters/Eyes', 'UseAOOnEyes', curSettings.bUseAOOnEyes)
+
+	--[DLSS]
+	GameOptions.SetInt('DLSS', 'SampleNumber', curSettings.iDLSS_SampleNumber)
+	GameOptions.SetBool('DLSS', 'EnableHalton', curSettings.bEnableHalton)
+
+	--[Editor/RTXDI]
+	GameOptions.SetBool('Editor/RTXDI', 'EnableLocalLightImportanceSampling', curSettings.bEnableLocalLightImportanceSampling)
+	GameOptions.SetBool('Editor/RTXDI', 'EnableSeparateDenoising', curSettings.bEnableSeparateDenoising)
+	GameOptions.SetBool('Editor/RTXDI', 'EnableFallbackLight', curSettings.bEnableFallbackLight)
+	GameOptions.SetFloat('Editor/RTXDI', 'ShadowFadeFraction', curSettings.fShadowFadeFraction)
+	GameOptions.SetBool('Editor/RTXDI', 'EnableApproximateTargetPDF', curSettings.bEnableApproximateTargetPDF)
+	GameOptions.SetBool('Editor/RTXDI', 'EnableGradients', curSettings.bEnableGradients)
+	GameOptions.SetBool('Editor/RTXDI', 'UseCustomDenoiser', curSettings.bUseCustomDenoiser)
+	GameOptions.SetBool('Editor/RTXDI', 'EnableRTXDIDenoising', curSettings.bEnableRTXDIDenoising)
+	GameOptions.SetBool('Editor/RTXDI', 'InitialCandidatesInTemporal', curSettings.bInitialCandidatesInTemporal)
+	GameOptions.SetInt('Editor/RTXDI', 'BiasCorrectionMode', (tonumber(curSettings.iRTXDI_BiasCorrectionMode)-1))
+	GameOptions.SetInt('Editor/RTXDI', 'PermutationSamplingMode', (tonumber(curSettings.iRTXDI_PermutationSamplingMode)-1))
+	GameOptions.SetFloat('Editor/RTXDI', 'BoilingFilterStrength', curSettings.fRTXDI_BoilingFilterStrength)
+	GameOptions.SetInt('Editor/RTXDI', 'MaxHistoryLength', curSettings.iRTXDI_MaxHistoryLength)
+	GameOptions.SetInt('Editor/RTXDI', 'SpatialNumDisocclusionBoostSamples', curSettings.iRTXDI_SpatialNumDisocclusionBoostSamples)
+	GameOptions.SetInt('Editor/RTXDI', 'SpatialNumSamples', curSettings.iRTXDI_SpatialNumSamples)
+	GameOptions.SetInt('Editor/RTXDI', 'NumInitialSamples', curSettings.iRTXDI_NumInitialSamples)
+	GameOptions.SetInt('Editor/RTXDI', 'NumEnvMapSamples', curSettings.iRTXDI_NumEnvMapSamples)
+	GameOptions.SetFloat('Editor/RTXDI', 'SpatialSamplingRadius', curSettings.fRTXDI_SpatialSamplingRadius)
+	GameOptions.SetFloat('Editor/RTXDI', 'ForcedShadowLightSourceRadius', curSettings.fForcedShadowLightSourceRadius)
+	GameOptions.SetBool('Editor/RTXDI', 'ForceAllShadows', curSettings.bForceAllShadows)
+
+	--[RayTracing/Reference]
+	GameOptions.SetBool('RayTracing/Reference', 'EnableProbabilisticSampling', curSettings.bEnableProbabilisticSampling)
+	GameOptions.SetBool('RayTracing/Reference', 'EnableRIS', curSettings.bEnableRIS)
+	GameOptions.SetBool('RayTracing/Reference', 'EnableFixed', curSettings.bEnableFixed)
+	GameOptions.SetFloat('RayTracing/Reference', 'AlbedoModulation', 0)
+	GameOptions.SetFloat('RayTracing/Reference', 'DiffuseEmissiveScale', 1.0)
+	GameOptions.SetFloat('RayTracing/Reference', 'DiffuseGlobalScale', 1.0)
+	GameOptions.SetFloat('RayTracing/Reference', 'DiffuseLocalLightsScale', 1.0)
+	GameOptions.SetFloat('RayTracing/Reference', 'DiffuseSkyScale', 1.1)
+	GameOptions.SetFloat('RayTracing/Reference', 'DiffuseSunScale', 1.35)
+	GameOptions.SetFloat('RayTracing/Reference', 'MaxIntensity', 1000.0)
+	GameOptions.SetFloat('RayTracing/Reference', 'SpecularEmissiveScale', 1.0)
+	GameOptions.SetFloat('RayTracing/Reference', 'SpecularGlobalScale', 1.0)
+	GameOptions.SetFloat('RayTracing/Reference', 'SpecularLocalLightsScale', 1.0)
+	GameOptions.SetFloat('RayTracing/Reference', 'SpecularSkyScale', 1.0)
+	GameOptions.SetFloat('RayTracing/Reference', 'SpecularSunScale', 1.0)
+	GameOptions.SetFloat('RayTracing/Reference', 'GIOnlyLightScale', 1.1)
+
+	GameOptions.SetFloat('Editor/Denoising/ReBLUR', 'HitDistanceRoughnessScale', 10.0)
+	GameOptions.SetFloat('Editor/Denoising/ReBLUR', 'HitDistanceRoughnessExpScale', -1.0)
+
+	GameOptions.SetBool('Occlusion', 'MultiFrustumUseGlobalOcclusion', false)
+	GameOptions.SetBool('RayTracing/DynamicInstance', 'UpdateUseHalfFloat', false)
+
+	GameOptions.SetFloat('Rendering/MeshLoading', 'AutoRefreshTime', 0.1)
+
+	GameOptions.SetFloat('SnapToTerrainIk', 'TraceAboveGroundDistance', 1.0)
+	GameOptions.SetFloat('SnapToTerrainIk', 'TraceBelowGroundDistance', 1.0)
+
+	--[Editor/ReSTIRGI]
+	GameOptions.SetBool('Editor/ReSTIRGI', 'Enable', curSettings.bEnableReSTIRGI)
+	GameOptions.SetBool('Editor/ReSTIRGI', 'EnableFallbackSampling', curSettings.bEnableFallbackSampling)
+	GameOptions.SetBool('Editor/ReSTIRGI', 'UseTemporalRGS', curSettings.bUseTemporalRGS)
+	GameOptions.SetBool('Editor/ReSTIRGI', 'UseSpatialRGS', curSettings.bUseSpatialRGS)
+	GameOptions.SetBool('Editor/ReSTIRGI', 'EnableFused', curSettings.bEnableFused)
+	GameOptions.SetBool('Editor/ReSTIRGI', 'EnableBoilingFilter', curSettings.bEnableBoilingFilter)
+	GameOptions.SetInt('Editor/ReSTIRGI', 'BiasCorrectionMode', (tonumber(curSettings.iEditor_ReSTRIGI_BiasCorrectionMode)-1))
+	GameOptions.SetInt('Editor/ReSTIRGI', 'PermutationSamplingMode', (tonumber(curSettings.iReSTIRGI_PermutationSamplingMode)-1))
+	GameOptions.SetFloat('Editor/ReSTIRGI', 'BoilingFilterStrength', curSettings.fReSTIRGI_BoilingFilterStrength)
+	GameOptions.SetInt('Editor/ReSTIRGI', 'MaxHistoryLength', curSettings.iReSTIRGI_MaxHistoryLength)
+	GameOptions.SetInt('Editor/ReSTIRGI', 'MaxReservoirAge', curSettings.iReSTIRGI_MaxReservoirAge)
+	GameOptions.SetInt('Editor/ReSTIRGI', 'SpatialNumDisocclusionBoostSamples', curSettings.iReSTIRGI_SpatialNumDisocclusionBoostSamples)
+	GameOptions.SetInt('Editor/ReSTIRGI', 'SpatialNumSamples', curSettings.iReSTIRGI_SpatialNumSamples)
+	GameOptions.SetInt('Editor/ReSTIRGI', 'TargetHistoryLength', curSettings.iReSTIRGI_TargetHistoryLength)
+	GameOptions.SetFloat('Editor/ReSTIRGI', 'SpatialSamplingRadius', curSettings.fReSTIRGI_SpatialSamplingRadius)
+
+	--[RayTracing/LocalLight]
+	GameOptions.SetInt('RayTracing/LocalLight', 'BatchSize', curSettings.iLocalLight_BatchSize)
+	GameOptions.SetInt('RayTracing/LocalLight', 'Capacity', curSettings.iLocalLight_Capacity)
+	GameOptions.SetInt('RayTracing/LocalLight', 'GridSize', curSettings.iLocalLight_GridSize)
+
+	--[RayTracing/BlasCache]
+	GameOptions.SetInt('RayTracing/BlasCache', 'Budget', curSettings.iBlasCache_Budget)
+	GameOptions.SetInt('RayTracing/BlasCache', 'Reserve', curSettings.iBlasCache_Reserve)
+
+	--Editor/Denoising/ReBLUR/Direct/
+	GameOptions.SetBool('Editor/Denoising/ReBLUR/Direct', 'ReferenceAccumulation', curSettings.bReBLUR_ReferenceAccumulation)
+
+	--VariableRateShading
+	GameOptions.SetBool('Rendering/VariableRateShading', 'Enable', curSettings.bVRS_Enable)
+	GameOptions.SetFloat('Rendering/VariableRateShading', 'VarianceCutoff', curSettings.fVRS_VarianceCutoff)
+	GameOptions.SetFloat('Rendering/VariableRateShading', 'MotionFactor', curSettings.fVRS_MotionFactor)
+	GameOptions.SetFloat('Rendering/VariableRateShading', 'ScreenEdgeFactor', curSettings.fVRS_ScreenEdgeFactor)
+
+	--[Editor/ReGIR]
+	GameOptions.SetBool('Editor/ReGIR', 'Enable', curSettings.bReGIREnable)
+	GameOptions.SetInt('Editor/ReGIR', 'LightSlotsCount', curSettings.iLightSlotsCount)
+	GameOptions.SetInt('Editor/ReGIR', 'BuildCandidatesCount', curSettings.iBuildCandidatesCount)
+	GameOptions.SetBool('Editor/ReGIR', 'UseForDI', curSettings.bUseForDI)
+
+--	Print('CorpoRat.InitSettings Ran')
 end
 
-return CorpoCrowds
+function CorpoRat.SetDenoiser()
+	
+	if curSettings.denoiser == 1 then
+		--clean
+		GameOptions.SetFloat('Editor/Denoising/NRD', 'DisocclusionThreshold', 0.01)
+
+		GameOptions.SetInt('Editor/Denoising/ReBLUR/Direct', 'HistoryFixFrameNum', 3)
+		GameOptions.SetInt('Editor/Denoising/ReBLUR/Indirect', 'HistoryFixFrameNum', 3)
+		GameOptions.SetFloat('Editor/Denoising/ReBLUR/Direct', 'HistoryFixStrength', 0.5)
+		GameOptions.SetFloat('Editor/Denoising/ReBLUR/Indirect', 'HistoryFixStrength', 0.5)
+
+		GameOptions.SetBool('Editor/Denoising/ReLAX/Direct/Common', 'AntiFirefly', false)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Common', 'HistoryFixFrameNum', 2)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Common', 'HistoryFixEdgeStoppingNormalPower', 8.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Common', 'HistoryClampingColorBoxSigmaScale', 1.5)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Common', 'AtrousIterationNum', 2)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Common', 'DepthThreshold', 0.0015)
+
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Diffuse', 'PrepassBlurRadius', 12.5)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Diffuse', 'MaxAccumulatedFrameNum', 16)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Diffuse', 'MaxFastAccumulatedFrameNum', 3)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Diffuse', 'PhiLuminance', 0.1)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Diffuse', 'LobeAngleFraction', 0.25)
+
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'PrepassBlurRadius', 25.0)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Specular', 'MaxAccumulatedFrameNum', 16)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Specular', 'MaxFastAccumulatedFrameNum', 2)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'PhiLuminance', 0.15)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'LobeAngleFraction', 0.125)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'RoughnessFraction', 0.75)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'LobeAngleSlack', 0.05)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'LuminanceEdgeStoppingRelaxation', 0.25)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'NormalEdgeStoppingRelaxation', 0.15)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'RoughnessEdgeStoppingRelaxation', 0.15)
+		GameOptions.SetBool('Editor/Denoising/ReLAX/Direct/Specular', 'VirtualHistoryClamping', true)
+
+		GameOptions.SetBool('Editor/Denoising/ReLAX/Indirect/Common', 'AntiFirefly', false)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Common', 'HistoryFixFrameNum', 2)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Common', 'HistoryFixEdgeStoppingNormalPower', 2.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Common', 'HistoryClampingColorBoxSigmaScale', 1.5)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Common', 'AtrousIterationNum', 2)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Common', 'DepthThreshold', 0.005)
+
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Diffuse', 'PrepassBlurRadius', 12.5)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Diffuse', 'MaxAccumulatedFrameNum', 32)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Diffuse', 'MaxFastAccumulatedFrameNum', 4)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Diffuse', 'PhiLuminance', 0.5)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Diffuse', 'LobeAngleFraction', 0.5)
+
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'PrepassBlurRadius', 25.0)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Specular', 'MaxAccumulatedFrameNum', 3)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Specular', 'MaxFastAccumulatedFrameNum', 3)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'PhiLuminance', 0.5)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'LobeAngleFraction', 0.5)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'RoughnessFraction', 0.15)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'LobeAngleSlack', 0.1)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'LuminanceEdgeStoppingRelaxation', 0.25)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'NormalEdgeStoppingRelaxIation', 0.15)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'RoughnessEdgeStoppingRelaxation', 0.15)
+		GameOptions.SetBool('Editor/Denoising/ReLAX/Indirect/Specular', 'VirtualHistoryClamping', true)
+--		Print("Set Denoiser to Ray Reconstruction Clean")
+	end
+	
+	if curSettings.denoiser == 2 then
+		--sharp
+		GameOptions.SetFloat('Editor/Denoising/NRD', 'DisocclusionThreshold', 0.0)
+
+		GameOptions.SetInt('Editor/Denoising/ReBLUR/Direct', 'HistoryFixFrameNum', 3)
+		GameOptions.SetInt('Editor/Denoising/ReBLUR/Indirect', 'HistoryFixFrameNum', 3)
+		GameOptions.SetFloat('Editor/Denoising/ReBLUR/Direct', 'HistoryFixStrength', 0.5)
+		GameOptions.SetFloat('Editor/Denoising/ReBLUR/Indirect', 'HistoryFixStrength', 0.5)
+
+		GameOptions.SetBool('Editor/Denoising/ReLAX/Direct/Common', 'AntiFirefly', false)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Common', 'HistoryFixFrameNum', 2)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Common', 'HistoryFixEdgeStoppingNormalPower', 8.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Common', 'HistoryClampingColorBoxSigmaScale', 2.5)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Common', 'AtrousIterationNum', 2)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Common', 'DepthThreshold', 0.0015)
+
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Diffuse', 'PrepassBlurRadius', 12.5)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Diffuse', 'MaxAccumulatedFrameNum', 12)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Diffuse', 'MaxFastAccumulatedFrameNum', 2)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Diffuse', 'PhiLuminance', 0.1)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Diffuse', 'LobeAngleFraction', 0.0)
+
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'PrepassBlurRadius', 25.0)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Specular', 'MaxAccumulatedFrameNum', 12)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Specular', 'MaxFastAccumulatedFrameNum', 2)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'PhiLuminance', 0.1)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'LobeAngleFraction', 0.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'RoughnessFraction', 0.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'LobeAngleSlack', 0.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'LuminanceEdgeStoppingRelaxation', 0.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'NormalEdgeStoppingRelaxation', 0.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'RoughnessEdgeStoppingRelaxation', 0.0)
+		GameOptions.SetBool('Editor/Denoising/ReLAX/Direct/Specular', 'VirtualHistoryClamping', false)
+
+		GameOptions.SetBool('Editor/Denoising/ReLAX/Indirect/Common', 'AntiFirefly', false)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Common', 'HistoryFixFrameNum', 2)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Common', 'HistoryFixEdgeStoppingNormalPower', 2.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Common', 'HistoryClampingColorBoxSigmaScale', 2.5)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Common', 'AtrousIterationNum', 2)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Common', 'DepthThreshold', 0.0045)
+
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Diffuse', 'PrepassBlurRadius', 12.5)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Diffuse', 'MaxAccumulatedFrameNum', 16)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Diffuse', 'MaxFastAccumulatedFrameNum', 3)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Diffuse', 'PhiLuminance', 0.5)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Diffuse', 'LobeAngleFraction', 0.0)
+
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'PrepassBlurRadius', 25.0)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Specular', 'MaxAccumulatedFrameNum', 16)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Specular', 'MaxFastAccumulatedFrameNum', 3)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'PhiLuminance', 0.5)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'LobeAngleFraction', 0.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'RoughnessFraction', 0.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'LobeAngleSlack', 0.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'LuminanceEdgeStoppingRelaxation', 0.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'NormalEdgeStoppingRelaxIation', 0.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'RoughnessEdgeStoppingRelaxation', 0.0)
+		GameOptions.SetBool('Editor/Denoising/ReLAX/Indirect/Specular', 'VirtualHistoryClamping', false)
+--		Print("Set Denoiser to Ray Reconstruction Sharp")
+	end
+	
+	if curSettings.denoiser == 3 then
+		--NRD
+		GameOptions.SetBool('Editor/RTXDI', 'EnableGradients', false)
+
+		GameOptions.SetFloat('Editor/Denoising/NRD', 'DisocclusionThreshold', 0.01)
+
+		GameOptions.SetInt('Editor/Denoising/ReBLUR/Direct', 'HistoryFixFrameNum', 5)
+		GameOptions.SetInt('Editor/Denoising/ReBLUR/Indirect', 'HistoryFixFrameNum', 5)
+		GameOptions.SetFloat('Editor/Denoising/ReBLUR/Direct', 'HistoryFixStrength', 1.0)
+		GameOptions.SetFloat('Editor/Denoising/ReBLUR/Indirect', 'HistoryFixStrength', 1.0)
+
+		GameOptions.SetBool('Editor/Denoising/ReLAX/Direct/Common', 'AntiFirefly', true)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Common', 'HistoryFixFrameNum', 3)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Common', 'HistoryFixEdgeStoppingNormalPower', 8.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Common', 'HistoryClampingColorBoxSigmaScale', 2.0)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Common', 'AtrousIterationNum', 5)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Common', 'DepthThreshold', 0.003)
+
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Diffuse', 'PrepassBlurRadius', 12.5)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Diffuse', 'MaxAccumulatedFrameNum', 16)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Diffuse', 'MaxFastAccumulatedFrameNum', 1)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Diffuse', 'PhiLuminance', 0.2)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Diffuse', 'LobeAngleFraction', 0.5)
+
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'PrepassBlurRadius', 25.0)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Specular', 'MaxAccumulatedFrameNum', 16)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Specular', 'MaxFastAccumulatedFrameNum', 1)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'PhiLuminance', 0.3)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'LobeAngleFraction', 0.25)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'RoughnessFraction', 0.15)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'LobeAngleSlack', 0.05)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'LuminanceEdgeStoppingRelaxation', 0.5)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'NormalEdgeStoppingRelaxation', 0.3)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'RoughnessEdgeStoppingRelaxation', 0.3)
+		GameOptions.SetBool('Editor/Denoising/ReLAX/Direct/Specular', 'VirtualHistoryClamping', true)
+
+		GameOptions.SetBool('Editor/Denoising/ReLAX/Indirect/Common', 'AntiFirefly', true)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Common', 'HistoryFixFrameNum', 3)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Common', 'HistoryFixEdgeStoppingNormalPower', 1.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Common', 'HistoryClampingColorBoxSigmaScale', 2.0)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Common', 'AtrousIterationNum', 7)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Common', 'DepthThreshold', 0.01)
+
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Diffuse', 'PrepassBlurRadius', 12.5)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Diffuse', 'MaxAccumulatedFrameNum', 32)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Diffuse', 'MaxFastAccumulatedFrameNum', 2)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Diffuse', 'PhiLuminance', 1.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Diffuse', 'LobeAngleFraction', 1.0)
+
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'PrepassBlurRadius', 25.0)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Specular', 'MaxAccumulatedFrameNum', 32)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Specular', 'MaxFastAccumulatedFrameNum', 2)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'PhiLuminance', 1.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'LobeAngleFraction', 0.5)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'RoughnessFraction', 0.3)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'LobeAngleSlack', 0.1)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'LuminanceEdgeStoppingRelaxation', 0.5)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'NormalEdgeStoppingRelaxIation', 0.3)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'RoughnessEdgeStoppingRelaxation', 0.3)
+		GameOptions.SetBool('Editor/Denoising/ReLAX/Indirect/Specular', 'VirtualHistoryClamping', true)
+--		Print("Set Denoiser to NRD")
+	end
+
+	if curSettings.denoiser == 4 then
+		--Vanilla
+		GameOptions.SetBool('Editor/RTXDI', 'EnableGradients', true)
+
+		GameOptions.SetFloat('Editor/Denoising/NRD', 'DisocclusionThreshold', 0.005)
+
+		GameOptions.SetInt('Editor/Denoising/ReBLUR/Direct', 'HistoryFixFrameNum', 3)
+		GameOptions.SetInt('Editor/Denoising/ReBLUR/Indirect', 'HistoryFixFrameNum', 3)
+		GameOptions.SetFloat('Editor/Denoising/ReBLUR/Direct', 'HistoryFixStrength', 1.0)
+		GameOptions.SetFloat('Editor/Denoising/ReBLUR/Indirect', 'HistoryFixStrength', 1.0)
+
+		GameOptions.SetBool('Editor/Denoising/ReLAX/Direct/Common', 'AntiFirefly', true)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Common', 'HistoryFixFrameNum', 3)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Common', 'HistoryFixEdgeStoppingNormalPower', 8.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Common', 'HistoryClampingColorBoxSigmaScale', 2.0)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Common', 'AtrousIterationNum', 5)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Common', 'DepthThreshold', 0.003)
+
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Diffuse', 'PrepassBlurRadius', 25.0)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Diffuse', 'MaxAccumulatedFrameNum', 24)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Diffuse', 'MaxFastAccumulatedFrameNum', 2)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Diffuse', 'PhiLuminance', 0.2)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Diffuse', 'LobeAngleFraction', 0.5)
+
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'PrepassBlurRadius', 50.0)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Specular', 'MaxAccumulatedFrameNum', 24)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Direct/Specular', 'MaxFastAccumulatedFrameNum', 2)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'PhiLuminance', 0.3)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'LobeAngleFraction', 0.25)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'RoughnessFraction', 0.15)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'LobeAngleSlack', 0.1)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'LuminanceEdgeStoppingRelaxation', 0.5)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'NormalEdgeStoppingRelaxation', 0.3)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Direct/Specular', 'RoughnessEdgeStoppingRelaxation', 0.3)
+		GameOptions.SetBool('Editor/Denoising/ReLAX/Direct/Specular', 'VirtualHistoryClamping', true)
+
+		GameOptions.SetBool('Editor/Denoising/ReLAX/Indirect/Common', 'AntiFirefly', true)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Common', 'HistoryFixFrameNum', 3)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Common', 'HistoryFixEdgeStoppingNormalPower', 1.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Common', 'HistoryClampingColorBoxSigmaScale', 2.0)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Common', 'AtrousIterationNum', 5)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Common', 'DepthThreshold', 0.01)
+
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Diffuse', 'PrepassBlurRadius', 25.0)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Diffuse', 'MaxAccumulatedFrameNum', 48)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Diffuse', 'MaxFastAccumulatedFrameNum', 3)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Diffuse', 'PhiLuminance', 1.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Diffuse', 'LobeAngleFraction', 1.0)
+
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'PrepassBlurRadius', 50.0)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Specular', 'MaxAccumulatedFrameNum', 48)
+		GameOptions.SetInt('Editor/Denoising/ReLAX/Indirect/Specular', 'MaxFastAccumulatedFrameNum', 3)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'PhiLuminance', 1.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'LobeAngleFraction', 1.0)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'RoughnessFraction', 0.3)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'LobeAngleSlack', 0.2)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'LuminanceEdgeStoppingRelaxation', 0.5)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'NormalEdgeStoppingRelaxIation', 0.3)
+		GameOptions.SetFloat('Editor/Denoising/ReLAX/Indirect/Specular', 'RoughnessEdgeStoppingRelaxation', 0.3)
+		GameOptions.SetBool('Editor/Denoising/ReLAX/Indirect/Specular', 'VirtualHistoryClamping', false)
+--		Print("Set Denoiser to Vanilla")
+	end
+end
+	
+return CorpoRat
